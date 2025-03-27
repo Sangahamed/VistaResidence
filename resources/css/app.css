@@ -1,0 +1,85 @@
+@import '@fortawesome/fontawesome-free/css/all.css';
+@tailwind base;
+
+/* Swiper Pagination Bullet */
+.swiper-pagination-bullet {
+    background-color: white !important;
+}
+
+/* Swiper Button Styles */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .swiper-button-prev,
+    .swiper-button-next {
+        display: none !important; /* Cache complètement les boutons en mobile */
+    }
+}
+
+.swiper .swiper-button-prev,
+.swiper .swiper-button-next {
+    top: calc(50% + 40px); /* Déplacement vers le bas */
+}
+
+/* Scrollbar Hide for Chrome, Edge */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Scrollbar Hide for Firefox */
+.scrollbar-hide {
+    scrollbar-width: none;
+}
+
+/* Lightbox Styles */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.5s;
+}
+
+.lightbox:target {
+    display: flex;
+}
+
+.lightbox img {
+    max-height: 90vh;
+    max-width: 90vw;
+    object-fit: contain;
+    animation: zoomIn 0.5s;
+}
+
+/* Keyframes for Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.5);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+
+
+@tailwind components;
+@tailwind utilities;
