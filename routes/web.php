@@ -38,9 +38,9 @@ Route::post('/two-factor', [UserController::class, 'verifyTwoFactor'])->name('tw
 Route::post('/send-password-reset-link',[UserController::class,'sendPasswordResetLink'])->name('send-password-reset-link');
 
 // Activation du mode Propriétaire
-Route::post('/activate-proprietaire', [UserController::class, 'activateProprietaire'])
-     ->middleware(['auth', 'verified'])
-     ->name('proprietaire.activate');
+// Route::post('/activate-proprietaire', [UserController::class, 'activateProprietaire'])
+//      ->middleware(['auth', 'verified'])
+//      ->name('proprietaire.activate');
 // routes/web.php
 Route::prefix('proprietaire')->middleware(['auth', 'proprietaire.verified','role.check:particulier'])->group(function () {
     Route::get('/dashboard', [ProprietaireController::class, 'ProprietaireDashboard'])->name('proprietaire.dashboard');

@@ -668,18 +668,18 @@ class UserController extends Controller
         ]);
     }
 
-   public function activateProprietaire(Request $request)
-{
-    $user = $request->user();
+//    public function activateProprietaire(Request $request)
+// {
+//     $user = $request->user();
     
-    if (!$user->hasRole('particulier')) {
-        $user->assignRole('particulier');
-        $user->removeRole('client');
-        return redirect()->route('proprietaire.dashboard');
-    }
+//     if (!$user->hasRole('particulier')) {
+//         $user->assignRole('particulier');
+//         $user->removeRole('client');
+//         return redirect()->route('proprietaire.dashboard');
+//     }
     
-    return back();
-}
+//     return back();
+// }
 
     public function createEnterprise(Request $request)
     {
