@@ -11,8 +11,7 @@
                 <button class="hidden lg:flex items-center text-gray-500 hover:text-orange-600 ml-16"
                     onclick="event.preventDefault();document.getElementById('adminLogoutForm').submit();">
                     <i class="ri-logout-box-r-line text-2xl"></i>
-                    <form action="{{ route('admin.logout_handler') }}" id="adminLogoutForm"
-                        method="POST">@csrf</form>
+                    <form action="{{ route('admin.logout_handler') }}" id="adminLogoutForm" method="POST">@csrf</form>
                 </button>
             </div>
 
@@ -46,23 +45,15 @@
             <i class="ri-settings-line mr-3"></i>
             Settings
         </a>
-        
 
-        @if(auth()->check())
-    @if(!auth()->user()->hasRole('particulier'))
-        <form action="{{ route('become.proprietaire') }}" method="POST">
-            @csrf
-            <button type="submit">Devenir Propriétaire</button>
-        </form>
-    @endif
-    
-    @if(!auth()->user()->hasRole('admin_entreprise'))
-        <form action="{{ route('create.entreprise') }}" method="POST">
-            @csrf
-            <input type="text" name="entreprise_name" required placeholder="Nom de l'entreprise">
-            <button type="submit">Créer une Entreprise</button>
-        </form>
-    @endif
-@endif
+
+        <div class="mt-4">
+            <form method="POST" action="{{ route('switch.to.individual') }}">
+                @csrf
+                <button type="submit" class="btn-primary">
+                    Devenir particulier pour publier des annonces
+                </button>
+            </form>
+        </div>
     </nav>
 </aside>

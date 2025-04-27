@@ -61,7 +61,7 @@
 
         <!-- Bouton d'action -->
         <div>
-            <a href=""
+            <a href="{{ route('login') }}"
                 class=" mt-5 inline-block bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-black/45 transition duration-300 transform hover:scale-105">
                 Accédez à votre compte
             </a>

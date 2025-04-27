@@ -54,7 +54,7 @@ class UserController extends Controller
         $user->status = 'Pending';
         $this->setUserDeviceInfo($user);
 
-        $user->assignRole('client');
+        
 
         if ($user->save()) {
             $token = $this->createVerificationToken($user);
@@ -162,11 +162,11 @@ class UserController extends Controller
         $this->resetLoginAttempts($user);
         session()->regenerate(); // Secure session
 
-        if ($user->hasPermissionTo('can_post_ads')) {
-            return redirect()->route('proprietaire.dashboard');
-        } elseif ($user->hasRole('admin_entreprise')) {
-            return redirect()->route('entreprise.dashboard');
-        }
+        // if ($user->hasPermissionTo('can_post_ads')) {
+        //     return redirect()->route('proprietaire.dashboard');
+        // } elseif ($user->hasRole('admin_entreprise')) {
+        //     return redirect()->route('entreprise.dashboard');
+        // }
 
         Log::info('Connexion réussie.', ['email' => $user->email, 'ip' => $ip, 'user_id' => $user->id]);
         return redirect()->route('dashboard');
@@ -668,29 +668,5 @@ class UserController extends Controller
         ]);
     }
 
-//    public function activateProprietaire(Request $request)
-// {
-//     $user = $request->user();
-    
-//     if (!$user->hasRole('particulier')) {
-//         $user->assignRole('particulier');
-//         $user->removeRole('client');
-//         return redirect()->route('proprietaire.dashboard');
-//     }
-    
-//     return back();
-// }
 
-    public function createEnterprise(Request $request)
-    {
-        $request->validate(['name' => 'required|string|max:255']);
-
-        $entreprise = Enterprise::create([
-            'name' => $request->name,
-            'admin_id' => $request->user()->id,
-        ]);
-
-        $request->user()->assignRole('admin_entreprise');
-        return redirect()->route('entreprise.dashboard');
-    }
 }
