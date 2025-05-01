@@ -278,6 +278,8 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'manager_id');
     }
 
+
+
     ### taches 
 
     public function tasks()
@@ -317,5 +319,153 @@ class User extends Authenticatable
     public function sentInvitations()
     {
         return $this->hasMany(Invitation::class, 'invited_by');
+    }
+
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_user')
+            ->withPivot('used_at', 'amount')
+            ->withTimestamps();
+    }
+
+
+    public function agent()
+    {
+        return $this->hasOne(Agent::class);
+    }
+
+
+    public function ledTeams()
+    {
+        return $this->hasMany(Team::class, 'leader_id');
+    }
+
+
+    public function savedSearches()
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
+    public function propertyViews()
+    {
+        return $this->hasMany(PropertyView::class);
+    }
+
+    public function preferences()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    public function notificationPreference()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(PropertyNotification::class);
+    }
+
+    public function visits()
+    {
+        return $this->hasMany(PropertyVisit::class);
+    }
+
+    public function bids()
+    {
+        return $this->hasMany(AuctionBid::class);
+    }
+
+    public function winningAuctions()
+    {
+        return $this->hasMany(PropertyAuction::class, 'current_bidder_id');
+    }
+
+
+
+    public function isAgencyAdmin()
+    {
+        return $this->hasRole('agency_admin');
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->hasRole('super-admin');
+    }
+
+
+
+    /**
+     * Get the notification preferences of the user.
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin' || $this->hasRole('admin') || $this->isSuperAdmin();
+    }
+
+    /**
+     * Check if the user is an agent.
+     */
+    public function isAgent()
+    {
+        return $this->role === 'agent' || $this->hasRole('agent') || $this->isAgencyAdmin();
+    }
+
+
+    /**
+     * Check if the user is a member of a specific company.
+     */
+    public function isCompanyMember($companyId)
+    {
+        return $this->companies()->where('companies.id', $companyId)->exists();
+    }
+
+    /**
+     * Check if the user is an admin of a specific company.
+     */
+    public function isCompanyAdminOf($companyId)
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        
+        return $this->companies()->where('companies.id', $companyId)->wherePivot('is_admin', true)->exists();
+    }
+
+    /**
+     * Check if the user is a member of a specific agency.
+     */
+    public function isAgencyMember($agencyId)
+    {
+        if (!$this->agent) {
+            return false;
+        }
+        
+        return $this->agent->agency_id === $agencyId;
+    }
+
+    /**
+     * Check if the user is an admin of a specific agency.
+     */
+    public function isAgencyAdminOf($agencyId)
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        
+        if (!$this->agent) {
+            return false;
+        }
+        
+        return $this->agent->agency_id === $agencyId && $this->isAgencyAdmin();
     }
 }

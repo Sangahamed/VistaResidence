@@ -46,4 +46,9 @@ class Agency extends Model
     {
         return $this->hasMany(Property::class);
     }
+
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
 }

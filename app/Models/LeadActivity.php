@@ -58,4 +58,55 @@ class LeadActivity extends Model
     {
         return $query->where('type', $type);
     }
+
+
+    public function scopePending($query)
+    {
+        return $query->where('is_completed', false);
+    }
+
+    public function scopeScheduled($query)
+    {
+        return $query->whereNotNull('scheduled_at');
+    }
+
+    public function scopeOfType($query, $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    public function scopeNotes($query)
+    {
+        return $query->where('type', 'note');
+    }
+
+    public function scopeEmails($query)
+    {
+        return $query->where('type', 'email');
+    }
+
+    public function scopeCalls($query)
+    {
+        return $query->where('type', 'call');
+    }
+
+    public function scopeMeetings($query)
+    {
+        return $query->where('type', 'meeting');
+    }
+
+    public function scopeStatusChanges($query)
+    {
+        return $query->where('type', 'status_change');
+    }
+
+    public function scopePropertyVisits($query)
+    {
+        return $query->where('type', 'property_visit');
+    }
+
+    public function scopeOffers($query)
+    {
+        return $query->where('type', 'offer');
+    }
 }

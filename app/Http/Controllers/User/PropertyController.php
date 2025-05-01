@@ -17,9 +17,20 @@ class PropertyController extends Controller
 
     public function index()
     {
-        $properties = Property::where('owner_id', auth()->id())
-            ->latest()
-            ->paginate(10);
+        $user = auth()->user();
+
+        if ($user->account_type === 'company') {
+            // Entreprise : afficher ses propriétés ou celles de ses agents
+            $properties = Property::where('company_id', $user->company_id)
+                ->orWhere('owner_id', $user->id)
+                ->latest()
+                ->paginate(10);
+        } else {
+            // Particulier : afficher ses propres propriétés
+            $properties = Property::where('owner_id', $user->id)
+                ->latest()
+                ->paginate(10);
+        }
 
         return view('properties.index', compact('properties'));
     }
@@ -177,10 +188,41 @@ class PropertyController extends Controller
         return view('properties.media', compact('property'));
     }
 
-    private function authorizeAccess(Property $property)
+    public function authorizeAccess(Property $property)
     {
-        if ($property->owner_id !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Accès non autorisé.');
+        $user = auth()->user();
+
+        // Vérification des rôles pour les entreprises
+        if ($user->isCompanyAdmin()) {
+            if ($property->company_id !== $user->companies->first()->id) {
+                abort(403, 'Accès interdit.');
+            }
+        } elseif ($user->isAgent()) {
+            if ($property->company_id !== $user->companies->first()->id) {
+                abort(403, 'Accès interdit.');
+            }
+        } elseif ($user->account_type === 'individual') {
+            if ($property->owner_id !== $user->id) {
+                abort(403, 'Accès interdit.');
+            }
+        } else {
+            abort(403, 'Accès interdit.');
         }
+    }
+
+    /**
+     * Ajoute ou retire une propriété des favoris de l'utilisateur.
+     */
+    public function toggleFavorite(Property $property)
+    {
+        $user = auth()->user();
+
+        if ($user->favorites()->where('property_id', $property->id)->exists()) {
+            $user->favorites()->detach($property->id);
+            return back()->with('success', 'Retiré des favoris.');
+        }
+
+        $user->favorites()->attach($property->id);
+        return back()->with('success', 'Ajouté aux favoris.');
     }
 }

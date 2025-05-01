@@ -33,12 +33,16 @@ return new class extends Migration
             $table->boolean('is_featured')->default(false);
             $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('company_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('agency_id')->nullable()->constrained()->onDelete('set null');
             $table->json('images')->nullable();
             $table->json('videos')->nullable();
             $table->boolean('has_virtual_tour')->default(false);
             $table->string('virtual_tour_type')->nullable(); // 'basic', 'panoramic', '3d'
             $table->string('virtual_tour_url')->nullable();
             $table->json('panoramic_images')->nullable();
+            $table->timestamp('published_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            
             $table->timestamps();
         });
     }

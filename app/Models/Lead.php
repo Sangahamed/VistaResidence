@@ -101,4 +101,31 @@ class Lead extends Model
             $q->where('agency_id', $agencyId);
         });
     }
+
+    public function scopeFromWebsite($query)
+    {
+        return $query->where('source', 'website');
+    }
+
+    public function scopeFromReferral($query)
+    {
+        return $query->where('source', 'referral');
+    }
+
+    public function scopeFromSocialMedia($query)
+    {
+        return $query->where('source', 'social_media');
+    }
+
+    public function scopeFromEmailCampaign($query)
+    {
+        return $query->where('source', 'email_campaign');
+    }
+
+    public function scopeFromPhone($query)
+    {
+        return $query->where('source', 'phone');
+    }
+
+    
 }

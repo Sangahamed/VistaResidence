@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'Security.header' => App\Http\Middleware\SecurityHeaders::class,
             'role' => \App\Http\Middleware\CheckRole::class,
+            'webhook.verify' => \App\Http\Middleware\VerifyWebhookSignature::class,
             'accescompany' => \App\Http\Middleware\CompanyAccess::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'prevent.back.history' => PreventBackHistory::class,

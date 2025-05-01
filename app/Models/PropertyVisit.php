@@ -28,6 +28,7 @@ class PropertyVisit extends Model
         'visit_date' => 'date',
         'visit_time_start' => 'datetime',
         'visit_time_end' => 'datetime',
+        'scheduled_at' => 'datetime',
     ];
 
     /**
@@ -143,5 +144,31 @@ class PropertyVisit extends Model
     {
         return $query->whereDate('visit_date', '<', now()->toDateString())
                      ->orWhere('status', 'completed');
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+
+    public function scopeForAgent($query, $agentId)
+    {
+        return $query->where('agent_id', $agentId);
+    }
+
+    public function scopeForVisitor($query, $visitorId)
+    {
+        return $query->where('visitor_id', $visitorId);
+    }
+
+    public function scopeForProperty($query, $propertyId)
+    {
+        return $query->where('property_id', $propertyId);
+    }
+
+    public function isPast()
+    {
+        return $this->visit_date < now()->toDateString();
     }
 }

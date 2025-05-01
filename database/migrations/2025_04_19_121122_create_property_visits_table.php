@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('cancellation_reason')->nullable();
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->onDelete('set null');
             $table->string('confirmation_code')->nullable();
+            $table->dateTime('scheduled_at')->nullable();
             $table->timestamps();
         });
     }

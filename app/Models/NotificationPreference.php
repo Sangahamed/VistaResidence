@@ -9,25 +9,57 @@ class NotificationPreference extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
-        'email_notifications',
-        'push_notifications',
-        'new_property_alerts',
-        'price_change_alerts',
-        'status_change_alerts',
-        'saved_search_alerts',
-        'notification_frequency',
+        'email_new_property',
+        'email_property_status',
+        'email_new_lead',
+        'email_lead_assigned',
+        'email_visit_requested',
+        'email_visit_status',
+        'push_new_property',
+        'push_property_status',
+        'push_new_lead',
+        'push_lead_assigned',
+        'push_visit_requested',
+        'push_visit_status',
+        'sms_new_property',
+        'sms_property_status',
+        'sms_new_lead',
+        'sms_lead_assigned',
+        'sms_visit_requested',
+        'sms_visit_status',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'email_notifications' => 'boolean',
-        'push_notifications' => 'boolean',
-        'new_property_alerts' => 'boolean',
-        'price_change_alerts' => 'boolean',
-        'status_change_alerts' => 'boolean',
-        'saved_search_alerts' => 'boolean',
-        'notification_frequency' => 'array',
+        'email_new_property' => 'boolean',
+        'email_property_status' => 'boolean',
+        'email_new_lead' => 'boolean',
+        'email_lead_assigned' => 'boolean',
+        'email_visit_requested' => 'boolean',
+        'email_visit_status' => 'boolean',
+        'push_new_property' => 'boolean',
+        'push_property_status' => 'boolean',
+        'push_new_lead' => 'boolean',
+        'push_lead_assigned' => 'boolean',
+        'push_visit_requested' => 'boolean',
+        'push_visit_status' => 'boolean',
+        'sms_new_property' => 'boolean',
+        'sms_property_status' => 'boolean',
+        'sms_new_lead' => 'boolean',
+        'sms_lead_assigned' => 'boolean',
+        'sms_visit_requested' => 'boolean',
+        'sms_visit_status' => 'boolean',
     ];
 
     /**

@@ -14,13 +14,31 @@ return new class extends Migration
         Schema::create('notification_preferences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->boolean('email_notifications')->default(true);
-            $table->boolean('push_notifications')->default(true);
-            $table->boolean('new_property_alerts')->default(true);
-            $table->boolean('price_change_alerts')->default(true);
-            $table->boolean('status_change_alerts')->default(true);
-            $table->boolean('saved_search_alerts')->default(true);
-            $table->json('notification_frequency')->nullable(); // 'instant', 'daily', 'weekly'
+            
+            // Préférences pour les emails
+            $table->boolean('email_new_property')->default(true);
+            $table->boolean('email_property_status')->default(true);
+            $table->boolean('email_new_lead')->default(true);
+            $table->boolean('email_lead_assigned')->default(true);
+            $table->boolean('email_visit_requested')->default(true);
+            $table->boolean('email_visit_status')->default(true);
+            
+            // Préférences pour les notifications push
+            $table->boolean('push_new_property')->default(true);
+            $table->boolean('push_property_status')->default(true);
+            $table->boolean('push_new_lead')->default(true);
+            $table->boolean('push_lead_assigned')->default(true);
+            $table->boolean('push_visit_requested')->default(true);
+            $table->boolean('push_visit_status')->default(true);
+            
+            // Préférences pour les SMS
+            $table->boolean('sms_new_property')->default(false);
+            $table->boolean('sms_property_status')->default(false);
+            $table->boolean('sms_new_lead')->default(false);
+            $table->boolean('sms_lead_assigned')->default(false);
+            $table->boolean('sms_visit_requested')->default(false);
+            $table->boolean('sms_visit_status')->default(false);
+            
             $table->timestamps();
         });
     }

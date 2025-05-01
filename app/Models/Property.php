@@ -44,6 +44,9 @@ class Property extends Model
         'is_featured' => 'boolean',
         'has_virtual_tour' => 'boolean',
         'panoramic_images' => 'array',
+        'published_at' => 'datetime',
+        'expires_at' => 'datetime',
+
     ];
 
     public function owner()
@@ -151,4 +154,91 @@ class Property extends Model
         
         return $availableSlots;
     }
+
+    
+
+    public function propertyType()
+    {
+        return $this->belongsTo(PropertyType::class, 'type', 'id');
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(PropertyFeature::class);
+    }
+
+
+    public function views()
+    {
+        return $this->hasMany(PropertyView::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(PropertyNotification::class);
+    }
+
+    public function auctions()
+    {
+        return $this->hasMany(PropertyAuction::class);
+    }
+
+    public function activeAuction()
+    {
+        return $this->hasOne(PropertyAuction::class)->where('status', 'active');
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeForSale($query)
+    {
+        return $query->where('type', 'sale');
+    }
+
+    public function scopeForRent($query)
+    {
+        return $query->where('type', 'rent');
+    }
+
+    public function scopeWithinPrice($query, $min, $max)
+    {
+        return $query->where('price', '>=', $min)->where('price', '<=', $max);
+    }
+
+    public function scopeWithinArea($query, $min, $max)
+    {
+        return $query->where('area', '>=', $min)->where('area', '<=', $max);
+    }
+
+    public function scopeWithBedrooms($query, $min)
+    {
+        return $query->where('bedrooms', '>=', $min);
+    }
+
+    public function scopeWithBathrooms($query, $min)
+    {
+        return $query->where('bathrooms', '>=', $min);
+    }
+
+    public function scopeInCity($query, $city)
+    {
+        return $query->where('city', $city);
+    }
+
+    public function scopeWithFeature($query, $featureId)
+    {
+        return $query->whereHas('features', function ($q) use ($featureId) {
+            $q->where('property_feature_id', $featureId);
+        });
+    }
+
+   
 }

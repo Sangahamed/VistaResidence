@@ -12,6 +12,12 @@ class PropertyType extends Model
 
     protected $fillable = ['name', 'description', 'icon', 'is_active'];
 
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    
     /**
      * Get the properties that belong to this type.
      */

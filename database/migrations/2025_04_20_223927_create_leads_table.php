@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->text('message')->nullable();
             $table->enum('status', ['new', 'contacted', 'qualified', 'negotiation', 'converted', 'lost'])->default('new');
+            $table->enum('inactive_level', ['warning', 'critical', 'low', 'medium', 'high'])->default('warning');
             $table->enum('source', ['website', 'referral', 'social_media', 'email_campaign', 'phone', 'other'])->default('website');
             $table->text('notes')->nullable();
             $table->decimal('budget_min', 12, 2)->nullable();

@@ -39,4 +39,15 @@ class Agent extends Model
         return $this->belongsToMany(User::class, 'agent_client', 'agent_id', 'client_id')
             ->withTimestamps();
     }
+
+
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
+
+    public function visits()
+    {
+        return $this->hasMany(PropertyVisit::class);
+    }
 }

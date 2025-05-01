@@ -33,8 +33,23 @@ class Module extends Model
 
     public function companies()
     {
-        return $this->belongsToMany(Company::class)
+        return $this->belongsToMany(Company::class, 'company_module')
             ->withPivot('is_enabled', 'settings', 'expires_at')
             ->withTimestamps();
+    }
+
+    public function scopeEnabled($query)
+    {
+        return $query->where('is_enabled', true);
+    }
+
+    public function scopeCore($query)
+    {
+        return $query->where('is_core', true);
+    }
+
+    public function scopeNonCore($query)
+    {
+        return $query->where('is_core', false);
     }
 }

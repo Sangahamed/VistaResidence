@@ -1,42 +1,50 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\LeadActivity;
 use App\Models\Agent;
 use App\Models\Property;
-use App\Models\LeadActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\NewLeadNotification;
+use App\Notifications\LeadAssignedNotification;
 
 class LeadController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $this->authorize('viewAny', Lead::class);
+        
         $query = Lead::query();
         
-        // Filtrer par statut si spécifié
-        if ($request->has('status') && $request->status != 'all') {
+        // Filtres
+        if ($request->has('status')) {
             $query->where('status', $request->status);
         }
         
-        // Filtrer par source si spécifié
-        if ($request->has('source') && $request->source != 'all') {
+        if ($request->has('source')) {
             $query->where('source', $request->source);
         }
         
-        // Filtrer par agent si spécifié
-        if ($request->has('agent_id') && $request->agent_id != 'all') {
+        if ($request->has('agent_id')) {
             $query->where('agent_id', $request->agent_id);
         }
         
-        // Filtrer par recherche si spécifié
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('property_id')) {
+            $query->where('property_id', $request->property_id);
+        }
+        
+        if ($request->has('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
@@ -44,113 +52,166 @@ class LeadController extends Controller
             });
         }
         
-        // Restreindre l'accès selon le rôle
-        if ($user->role === 'agent') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent) {
-                $query->where('agent_id', $agent->id);
-            } else {
-                return redirect()->route('home')->with('error', 'Vous n\'êtes pas autorisé à accéder à cette page.');
-            }
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent && $agent->agency_id) {
-                $query->whereHas('agent', function ($q) use ($agent) {
-                    $q->where('agency_id', $agent->agency_id);
+        // Tri
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        
+        $query->orderBy($sortBy, $sortOrder);
+        
+        // Filtrer selon le rôle de l'utilisateur
+        $user = Auth::user();
+        
+        if ($user->isAgent()) {
+            $query->where('agent_id', $user->agent->id);
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $query->whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            });
+        } elseif ($user->isCompanyAdmin()) {
+            $companyId = $user->companies()->wherePivot('is_admin', true)->first()->id;
+            $query->whereHas('agent', function($q) use ($companyId) {
+                $q->whereHas('agency', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
                 });
-            } else {
-                return redirect()->route('home')->with('error', 'Vous n\'êtes pas autorisé à accéder à cette page.');
-            }
+            });
         }
         
-        // Récupérer les leads avec pagination
-        $leads = $query->with(['agent.user', 'property'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+        $leads = $query->with(['agent', 'property'])->paginate(15);
         
-        // Récupérer les agents pour le filtre
-        if ($user->role === 'admin') {
+        // Données pour les filtres
+        $statuses = [
+            'new' => 'Nouveau',
+            'contacted' => 'Contacté',
+            'qualified' => 'Qualifié',
+            'negotiation' => 'En négociation',
+            'converted' => 'Converti',
+            'lost' => 'Perdu'
+        ];
+        
+        $sources = [
+            'website' => 'Site web',
+            'referral' => 'Recommandation',
+            'social_media' => 'Réseaux sociaux',
+            'email_campaign' => 'Campagne email',
+            'phone' => 'Téléphone',
+            'other' => 'Autre'
+        ];
+        
+        $agents = [];
+        
+        if ($user->isSuperAdmin()) {
             $agents = Agent::with('user')->get();
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent && $agent->agency_id) {
-                $agents = Agent::where('agency_id', $agent->agency_id)->with('user')->get();
-            } else {
-                $agents = collect();
-            }
-        } else {
-            $agents = collect();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyId = $user->companies()->wherePivot('is_admin', true)->first()->id;
+            $agents = Agent::whereHas('agency', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })->with('user')->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $agents = Agent::where('agency_id', $agencyId)->with('user')->get();
         }
         
-        // Statistiques des leads
-        $totalLeads = $query->count();
-        $newLeads = $query->where('status', 'new')->count();
-        $convertedLeads = $query->where('status', 'converted')->count();
-        
-        return view('leads.index', compact(
-            'leads',
-            'agents',
-            'totalLeads',
-            'newLeads',
-            'convertedLeads'
-        ));
+        return view('leads.index', compact('leads', 'statuses', 'sources', 'agents'));
     }
 
     public function create()
     {
+        $this->authorize('create', Lead::class);
+        
+        $properties = [];
+        $agents = [];
+        
         $user = Auth::user();
         
-        // Récupérer les agents selon le rôle
-        if ($user->role === 'admin') {
+        if ($user->isSuperAdmin()) {
+            $properties = Property::where('status', 'active')->get();
             $agents = Agent::with('user')->get();
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent && $agent->agency_id) {
-                $agents = Agent::where('agency_id', $agent->agency_id)->with('user')->get();
-            } else {
-                $agents = collect();
-            }
-        } else {
-            $agent = Agent::where('user_id', $user->id)->first();
-            $agents = $agent ? collect([$agent]) : collect();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyId = $user->companies()->wherePivot('is_admin', true)->first()->id;
+            $properties = Property::where('company_id', $companyId)->where('status', 'active')->get();
+            $agents = Agent::whereHas('agency', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })->with('user')->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $properties = Property::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->where('status', 'active')->get();
+            $agents = Agent::where('agency_id', $agencyId)->with('user')->get();
+        } elseif ($user->isAgent()) {
+            $properties = Property::where('agent_id', $user->agent->id)->where('status', 'active')->get();
+            $agents = [$user->agent];
         }
         
-        // Récupérer les propriétés
-        $properties = Property::where('status', 'active')->get();
+        $statuses = [
+            'new' => 'Nouveau',
+            'contacted' => 'Contacté',
+            'qualified' => 'Qualifié',
+            'negotiation' => 'En négociation',
+            'converted' => 'Converti',
+            'lost' => 'Perdu'
+        ];
         
-        return view('leads.create', compact('agents', 'properties'));
+        $sources = [
+            'website' => 'Site web',
+            'referral' => 'Recommandation',
+            'social_media' => 'Réseaux sociaux',
+            'email_campaign' => 'Campagne email',
+            'phone' => 'Téléphone',
+            'other' => 'Autre'
+        ];
+        
+        return view('leads.create', compact('properties', 'agents', 'statuses', 'sources'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $this->authorize('create', Lead::class);
+        
+        $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
             'message' => 'nullable|string',
-            'agent_id' => 'nullable|exists:agents,id',
-            'property_id' => 'nullable|exists:properties,id',
             'status' => 'required|in:new,contacted,qualified,negotiation,converted,lost',
             'source' => 'required|in:website,referral,social_media,email_campaign,phone,other',
             'notes' => 'nullable|string',
             'budget_min' => 'nullable|numeric|min:0',
-            'budget_max' => 'nullable|numeric|min:0',
+            'budget_max' => 'nullable|numeric|min:0|gte:budget_min',
             'preferred_location' => 'nullable|string|max:255',
             'bedrooms' => 'nullable|integer|min:0',
             'bathrooms' => 'nullable|integer|min:0',
+            'property_id' => 'nullable|exists:properties,id',
+            'agent_id' => 'nullable|exists:agents,id',
         ]);
         
-        $lead = Lead::create($request->all());
+        $lead = new Lead();
+        $lead->fill($validated);
         
-        // Créer une activité pour le nouveau lead
-        LeadActivity::create([
-            'lead_id' => $lead->id,
-            'user_id' => Auth::id(),
-            'type' => 'note',
-            'description' => 'Lead créé',
-        ]);
+        // Si aucun agent n'est spécifié et que l'utilisateur est un agent, assigner automatiquement
+        if (!$request->has('agent_id') && Auth::user()->isAgent()) {
+            $lead->agent_id = Auth::user()->agent->id;
+        }
+        
+        $lead->save();
+        
+        // Créer une activité pour la création du lead
+        $activity = new LeadActivity();
+        $activity->lead_id = $lead->id;
+        $activity->user_id = Auth::id();
+        $activity->type = 'note';
+        $activity->description = 'Lead créé';
+        $activity->save();
+        
+        // Notifier l'agent assigné
+        if ($lead->agent_id) {
+            $agent = Agent::find($lead->agent_id);
+            if ($agent && $agent->user) {
+                $agent->user->notify(new LeadAssignedNotification($lead));
+            }
+        }
         
         return redirect()->route('leads.show', $lead)
             ->with('success', 'Lead créé avec succès.');
@@ -158,134 +219,149 @@ class LeadController extends Controller
 
     public function show(Lead $lead)
     {
-        $user = Auth::user();
+        $this->authorize('view', $lead);
         
-        // Vérifier l'accès
-        if ($user->role === 'agent') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if (!$agent || $lead->agent_id !== $agent->id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à accéder à ce lead.');
-            }
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if (!$agent || !$agent->agency_id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à accéder à ce lead.');
-            }
-            
-            $leadAgent = $lead->agent;
-            if (!$leadAgent || $leadAgent->agency_id !== $agent->agency_id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à accéder à ce lead.');
-            }
-        }
+        $lead->load(['agent', 'property', 'activities.user']);
         
-        $lead->load(['agent.user', 'property', 'activities.user']);
-        
-        // Récupérer les activités
-        $activities = $lead->activities()->orderBy('created_at', 'desc')->get();
-        
-        // Récupérer les agents pour le transfert
-        if ($user->role === 'admin') {
-            $agents = Agent::with('user')->get();
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent && $agent->agency_id) {
-                $agents = Agent::where('agency_id', $agent->agency_id)->with('user')->get();
-            } else {
-                $agents = collect();
-            }
-        } else {
-            $agents = collect();
-        }
-        
-        return view('leads.show', compact('lead', 'activities', 'agents'));
+        return view('leads.show', compact('lead'));
     }
 
     public function edit(Lead $lead)
     {
+        $this->authorize('update', $lead);
+        
+        $properties = [];
+        $agents = [];
+        
         $user = Auth::user();
         
-        // Vérifier l'accès
-        if ($user->role === 'agent') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if (!$agent || $lead->agent_id !== $agent->id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à modifier ce lead.');
-            }
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if (!$agent || !$agent->agency_id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à modifier ce lead.');
-            }
-            
-            $leadAgent = $lead->agent;
-            if (!$leadAgent || $leadAgent->agency_id !== $agent->agency_id) {
-                return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à modifier ce lead.');
-            }
-        }
-        
-        // Récupérer les agents selon le rôle
-        if ($user->role === 'admin') {
+        if ($user->isSuperAdmin()) {
+            $properties = Property::where('status', 'active')->get();
             $agents = Agent::with('user')->get();
-        } elseif ($user->role === 'agency_admin') {
-            $agent = Agent::where('user_id', $user->id)->first();
-            if ($agent && $agent->agency_id) {
-                $agents = Agent::where('agency_id', $agent->agency_id)->with('user')->get();
-            } else {
-                $agents = collect();
-            }
-        } else {
-            $agent = Agent::where('user_id', $user->id)->first();
-            $agents = $agent ? collect([$agent]) : collect();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyId = $user->companies()->wherePivot('is_admin', true)->first()->id;
+            $properties = Property::where('company_id', $companyId)->where('status', 'active')->get();
+            $agents = Agent::whereHas('agency', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })->with('user')->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $properties = Property::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->where('status', 'active')->get();
+            $agents = Agent::where('agency_id', $agencyId)->with('user')->get();
+        } elseif ($user->isAgent()) {
+            $properties = Property::where('agent_id', $user->agent->id)->where('status', 'active')->get();
+            $agents = [$user->agent];
         }
         
-        // Récupérer les propriétés
-        $properties = Property::where('status', 'active')->get();
+        $statuses = [
+            'new' => 'Nouveau',
+            'contacted' => 'Contacté',
+            'qualified' => 'Qualifié',
+            'negotiation' => 'En négociation',
+            'converted' => 'Converti',
+            'lost' => 'Perdu'
+        ];
         
-        return view('leads.edit', compact('lead', 'agents', 'properties'));
+        $sources = [
+            'website' => 'Site web',
+            'referral' => 'Recommandation',
+            'social_media' => 'Réseaux sociaux',
+            'email_campaign' => 'Campagne email',
+            'phone' => 'Téléphone',
+            'other' => 'Autre'
+        ];
+        
+        return view('leads.edit', compact('lead', 'properties', 'agents', 'statuses', 'sources'));
     }
 
     public function update(Request $request, Lead $lead)
     {
-        $request->validate([
+        $this->authorize('update', $lead);
+        
+        $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
             'message' => 'nullable|string',
-            'agent_id' => 'nullable|exists:agents,id',
-            'property_id' => 'nullable|exists:properties,id',
             'status' => 'required|in:new,contacted,qualified,negotiation,converted,lost',
             'source' => 'required|in:website,referral,social_media,email_campaign,phone,other',
             'notes' => 'nullable|string',
             'budget_min' => 'nullable|numeric|min:0',
-            'budget_max' => 'nullable|numeric|min:0',
+            'budget_max' => 'nullable|numeric|min:0|gte:budget_min',
             'preferred_location' => 'nullable|string|max:255',
             'bedrooms' => 'nullable|integer|min:0',
             'bathrooms' => 'nullable|integer|min:0',
+            'property_id' => 'nullable|exists:properties,id',
+            'agent_id' => 'nullable|exists:agents,id',
         ]);
         
         // Vérifier si le statut a changé
-        $statusChanged = $lead->status !== $request->status;
+        $statusChanged = $lead->status !== $validated['status'];
         $oldStatus = $lead->status;
         
-        // Mettre à jour les dates spéciales selon le statut
-        if ($statusChanged) {
-            if ($request->status === 'contacted') {
-                $request->merge(['last_contacted_at' => now()]);
-            } elseif ($request->status === 'converted') {
-                $request->merge(['converted_at' => now()]);
-            }
+        // Vérifier si l'agent a changé
+        $agentChanged = $lead->agent_id !== $validated['agent_id'];
+        $oldAgentId = $lead->agent_id;
+        
+        $lead->fill($validated);
+        
+        // Si le statut est passé à "converted", enregistrer la date de conversion
+        if ($statusChanged && $validated['status'] === 'converted') {
+            $lead->converted_at = now();
         }
         
-        $lead->update($request->all());
+        // Si le lead est contacté, mettre à jour la date de dernier contact
+        if ($statusChanged && $validated['status'] === 'contacted') {
+            $lead->last_contacted_at = now();
+        }
+        
+        $lead->save();
         
         // Créer une activité pour le changement de statut
         if ($statusChanged) {
-            LeadActivity::create([
-                'lead_id' => $lead->id,
-                'user_id' => Auth::id(),
-                'type' => 'status_change',
-                'description' => "Statut modifié de '{$oldStatus}' à '{$request->status}'",
-            ]);
+            $activity = new LeadActivity();
+            $activity->lead_id = $lead->id;
+            $activity->user_id = Auth::id();
+            $activity->type = 'status_change';
+            $activity->description = "Statut modifié de '{$oldStatus}' à '{$validated['status']}'";
+            $activity->save();
+        }
+        
+        // Créer une activité pour le changement d'agent
+        if ($agentChanged) {
+            $activity = new LeadActivity();
+            $activity->lead_id = $lead->id;
+            $activity->user_id = Auth::id();
+            $activity->type = 'note';
+            
+            if ($oldAgentId) {
+                $oldAgent = Agent::find($oldAgentId);
+                $oldAgentName = $oldAgent ? $oldAgent->user->name : 'Inconnu';
+                
+                if ($validated['agent_id']) {
+                    $newAgent = Agent::find($validated['agent_id']);
+                    $newAgentName = $newAgent ? $newAgent->user->name : 'Inconnu';
+                    $activity->description = "Agent modifié de '{$oldAgentName}' à '{$newAgentName}'";
+                } else {
+                    $activity->description = "Agent '{$oldAgentName}' retiré";
+                }
+            } else {
+                if ($validated['agent_id']) {
+                    $newAgent = Agent::find($validated['agent_id']);
+                    $newAgentName = $newAgent ? $newAgent->user->name : 'Inconnu';
+                    $activity->description = "Agent '{$newAgentName}' assigné";
+                    
+                    // Notifier le nouvel agent
+                    if ($newAgent && $newAgent->user) {
+                        $newAgent->user->notify(new LeadAssignedNotification($lead));
+                    }
+                }
+            }
+            
+            $activity->save();
         }
         
         return redirect()->route('leads.show', $lead)
@@ -294,12 +370,10 @@ class LeadController extends Controller
 
     public function destroy(Lead $lead)
     {
-        $user = Auth::user();
+        $this->authorize('delete', $lead);
         
-        // Vérifier l'accès (seuls les admins peuvent supprimer)
-        if ($user->role !== 'admin') {
-            return redirect()->route('leads.index')->with('error', 'Vous n\'êtes pas autorisé à supprimer ce lead.');
-        }
+        // Supprimer les activités associées
+        $lead->activities()->delete();
         
         $lead->delete();
         
@@ -309,25 +383,28 @@ class LeadController extends Controller
 
     public function addActivity(Request $request, Lead $lead)
     {
-        $request->validate([
+        $this->authorize('update', $lead);
+        
+        $validated = $request->validate([
             'type' => 'required|in:note,email,call,meeting,property_visit,offer',
             'description' => 'required|string',
             'scheduled_at' => 'nullable|date',
             'is_completed' => 'boolean',
         ]);
         
-        LeadActivity::create([
-            'lead_id' => $lead->id,
-            'user_id' => Auth::id(),
-            'type' => $request->type,
-            'description' => $request->description,
-            'scheduled_at' => $request->scheduled_at,
-            'is_completed' => $request->has('is_completed'),
-        ]);
+        $activity = new LeadActivity();
+        $activity->lead_id = $lead->id;
+        $activity->user_id = Auth::id();
+        $activity->type = $validated['type'];
+        $activity->description = $validated['description'];
+        $activity->scheduled_at = $validated['scheduled_at'] ?? null;
+        $activity->is_completed = $request->boolean('is_completed');
+        $activity->save();
         
-        // Mettre à jour la date de dernier contact si c'est un contact
-        if (in_array($request->type, ['email', 'call', 'meeting'])) {
-            $lead->update(['last_contacted_at' => now()]);
+        // Si c'est un contact, mettre à jour la date de dernier contact
+        if (in_array($validated['type'], ['email', 'call', 'meeting'])) {
+            $lead->last_contacted_at = now();
+            $lead->save();
         }
         
         return redirect()->route('leads.show', $lead)
@@ -336,31 +413,101 @@ class LeadController extends Controller
 
     public function completeActivity(LeadActivity $activity)
     {
-        $activity->update(['is_completed' => true]);
+        $this->authorize('update', $activity->lead);
         
-        return redirect()->route('leads.show', $activity->lead_id)
+        $activity->is_completed = true;
+        $activity->save();
+        
+        return redirect()->route('leads.show', $activity->lead)
             ->with('success', 'Activité marquée comme terminée.');
     }
 
-    public function transferLead(Request $request, Lead $lead)
+    public function deleteActivity(LeadActivity $activity)
     {
-        $request->validate([
+        $this->authorize('update', $activity->lead);
+        
+        $lead = $activity->lead;
+        $activity->delete();
+        
+        return redirect()->route('leads.show', $lead)
+            ->with('success', 'Activité supprimée avec succès.');
+    }
+
+    public function assign(Request $request, Lead $lead)
+    {
+        $this->authorize('update', $lead);
+        
+        $validated = $request->validate([
             'agent_id' => 'required|exists:agents,id',
-            'transfer_note' => 'nullable|string',
         ]);
         
         $oldAgentId = $lead->agent_id;
-        $lead->update(['agent_id' => $request->agent_id]);
+        $lead->agent_id = $validated['agent_id'];
+        $lead->save();
         
-        // Créer une activité pour le transfert
-        LeadActivity::create([
-            'lead_id' => $lead->id,
-            'user_id' => Auth::id(),
-            'type' => 'note',
-            'description' => "Lead transféré à un nouvel agent. " . ($request->transfer_note ? "Note: {$request->transfer_note}" : ""),
-        ]);
+        // Créer une activité pour le changement d'agent
+        $activity = new LeadActivity();
+        $activity->lead_id = $lead->id;
+        $activity->user_id = Auth::id();
+        $activity->type = 'note';
+        
+        if ($oldAgentId) {
+            $oldAgent = Agent::find($oldAgentId);
+            $oldAgentName = $oldAgent ? $oldAgent->user->name : 'Inconnu';
+            
+            $newAgent = Agent::find($validated['agent_id']);
+            $newAgentName = $newAgent ? $newAgent->user->name : 'Inconnu';
+            $activity->description = "Agent modifié de '{$oldAgentName}' à '{$newAgentName}'";
+        } else {
+            $newAgent = Agent::find($validated['agent_id']);
+            $newAgentName = $newAgent ? $newAgent->user->name : 'Inconnu';
+            $activity->description = "Agent '{$newAgentName}' assigné";
+        }
+        
+        $activity->save();
+        
+        // Notifier le nouvel agent
+        $newAgent = Agent::find($validated['agent_id']);
+        if ($newAgent && $newAgent->user) {
+            $newAgent->user->notify(new LeadAssignedNotification($lead));
+        }
         
         return redirect()->route('leads.show', $lead)
-            ->with('success', 'Lead transféré avec succès.');
+            ->with('success', 'Lead assigné avec succès.');
+    }
+
+    public function changeStatus(Request $request, Lead $lead)
+    {
+        $this->authorize('update', $lead);
+        
+        $validated = $request->validate([
+            'status' => 'required|in:new,contacted,qualified,negotiation,converted,lost',
+        ]);
+        
+        $oldStatus = $lead->status;
+        $lead->status = $validated['status'];
+        
+        // Si le statut est passé à "converted", enregistrer la date de conversion
+        if ($validated['status'] === 'converted') {
+            $lead->converted_at = now();
+        }
+        
+        // Si le lead est contacté, mettre à jour la date de dernier contact
+        if ($validated['status'] === 'contacted') {
+            $lead->last_contacted_at = now();
+        }
+        
+        $lead->save();
+        
+        // Créer une activité pour le changement de statut
+        $activity = new LeadActivity();
+        $activity->lead_id = $lead->id;
+        $activity->user_id = Auth::id();
+        $activity->type = 'status_change';
+        $activity->description = "Statut modifié de '{$oldStatus}' à '{$validated['status']}'";
+        $activity->save();
+        
+        return redirect()->route('leads.show', $lead)
+            ->with('success', 'Statut du lead modifié avec succès.');
     }
 }

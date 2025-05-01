@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->enum('account_type', ['client', 'individual', 'company'])->default('client');
-            $table->enum('role', ['user', 'agent', 'agency_admin', 'admin'])->default('user');
+            $table->enum('role', ['user', 'agent', 'agency_admin', 'admin', 'system'])->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->integer('verified')->default(0);
             $table->enum('status',['Pending','inReview','Active'])->default('Pending');

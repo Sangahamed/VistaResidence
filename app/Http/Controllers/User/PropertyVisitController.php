@@ -3,311 +3,420 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Property;
 use App\Models\PropertyVisit;
+use App\Models\Property;
+use App\Models\Agent;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use App\Notifications\VisitRequestedNotification;
 use App\Notifications\VisitConfirmedNotification;
 use App\Notifications\VisitCancelledNotification;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class PropertyVisitController extends Controller
 {
-    /**
-     * Afficher le formulaire de demande de visite.
-     */
-    public function create(Property $property)
+    public function __construct()
     {
-        // Vérifier si la propriété est disponible pour des visites
-        if ($property->status !== 'for_sale' && $property->status !== 'for_rent') {
-            return redirect()->route('properties.show', $property)
-                ->with('error', 'Cette propriété n\'est pas disponible pour des visites.');
-        }
-
-        // Générer les dates disponibles (prochains 14 jours)
-        $availableDates = [];
-        $startDate = Carbon::tomorrow();
-        $endDate = Carbon::tomorrow()->addDays(14);
-
-        for ($date = $startDate; $date->lte($endDate); $date = $date->copy()->addDay()) {
-            // Exclure les dimanches
-            if ($date->dayOfWeek !== Carbon::SUNDAY) {
-                $availableDates[] = [
-                    'date' => $date->format('Y-m-d'),
-                    'formatted' => $date->translatedFormat('l j F Y'),
-                    'slots' => $property->getAvailableTimeSlots($date)
-                ];
-            }
-        }
-
-        // Filtrer les dates qui n'ont pas de créneaux disponibles
-        $availableDates = array_filter($availableDates, function ($date) {
-            return count($date['slots']) > 0;
-        });
-
-        return view('properties.visits.create', compact('property', 'availableDates'));
+        $this->middleware('auth');
     }
 
-    /**
-     * Enregistrer une nouvelle demande de visite.
-     */
-    public function store(Request $request, Property $property)
+    public function index(Request $request)
     {
-        $request->validate([
-            'visit_date' => 'required|date|after_or_equal:today',
-            'visit_time' => 'required|string',
-            'notes' => 'nullable|string|max:500',
-        ]);
-
-        // Vérifier si l'utilisateur est connecté
-        if (!auth()->check()) {
-            return redirect()->route('login')
-                ->with('error', 'Vous devez être connecté pour demander une visite.');
-        }
-
-        // Extraire l'heure de début et de fin du créneau sélectionné
-        list($timeStart, $timeEnd) = explode(' - ', $request->visit_time);
-
-        // Vérifier si le créneau est toujours disponible
-        $selectedDate = Carbon::parse($request->visit_date);
-        $availableSlots = $property->getAvailableTimeSlots($selectedDate);
+        $query = PropertyVisit::query();
         
-        $slotExists = false;
-        foreach ($availableSlots as $slot) {
-            if ($slot['formatted'] === $request->visit_time) {
-                $slotExists = true;
-                break;
-            }
+        // Filtres
+        if ($request->has('property_id')) {
+            $query->where('property_id', $request->property_id);
         }
-
-        if (!$slotExists) {
-            return redirect()->back()
-                ->with('error', 'Ce créneau n\'est plus disponible. Veuillez en choisir un autre.')
-                ->withInput();
+        
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
         }
-
-        // Créer la demande de visite
-        $visit = PropertyVisit::create([
-            'property_id' => $property->id,
-            'visitor_id' => auth()->id(),
-            'agent_id' => $property->agent_id, // Assigner automatiquement à l'agent de la propriété
-            'visit_date' => $request->visit_date,
-            'visit_time_start' => $timeStart,
-            'visit_time_end' => $timeEnd,
-            'status' => 'pending',
-            'visitor_notes' => $request->notes,
-            'confirmation_code' => Str::random(8),
-        ]);
-
-        // Notifier l'agent
-        if ($property->agent) {
-            $property->agent->notify(new VisitRequestedNotification($visit));
+        
+        if ($request->has('date_from')) {
+            $query->where('visit_date', '>=', $request->date_from);
         }
-
-        return redirect()->route('visits.show', $visit)
-            ->with('success', 'Votre demande de visite a été enregistrée. Vous recevrez une confirmation prochainement.');
+        
+        if ($request->has('date_to')) {
+            $query->where('visit_date', '<=', $request->date_to);
+        }
+        
+        // Filtrer selon le rôle de l'utilisateur
+        $user = Auth::user();
+        
+        if ($user->isAgent()) {
+            $query->where('agent_id', $user->id);
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $query->whereHas('agent', function($q) use ($agencyId) {
+                $q->whereHas('agency', function($q) use ($agencyId) {
+                    $q->where('id', $agencyId);
+                });
+            });
+        } elseif ($user->isCompanyAdmin()) {
+            $companyIds = $user->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+            $query->whereHas('property', function($q) use ($companyIds) {
+                $q->whereIn('company_id', $companyIds);
+            });
+        } elseif (!$user->isSuperAdmin()) {
+            // Client normal
+            $query->where('visitor_id', $user->id);
+        }
+        
+        // Tri
+        $sortBy = $request->input('sort_by', 'visit_date');
+        $sortOrder = $request->input('sort_order', 'desc');
+        
+        $query->orderBy($sortBy, $sortOrder);
+        
+        $visits = $query->with(['property', 'visitor', 'agent'])->paginate(15);
+        
+        // Données pour les filtres
+        $properties = [];
+        $statuses = [
+            'pending' => 'En attente',
+            'confirmed' => 'Confirmée',
+            'completed' => 'Terminée',
+            'cancelled' => 'Annulée'
+        ];
+        
+        if ($user->isSuperAdmin()) {
+            $properties = Property::where('status', 'active')->get();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyIds = $user->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+            $properties = Property::whereIn('company_id', $companyIds)->where('status', 'active')->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $properties = Property::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->where('status', 'active')->get();
+        } elseif ($user->isAgent()) {
+            $properties = Property::where('agent_id', $user->agent->id)->where('status', 'active')->get();
+        }
+        
+        return view('visits.index', compact('visits', 'properties', 'statuses'));
     }
 
-    /**
-     * Afficher les détails d'une visite.
-     */
+    public function create(Request $request)
+    {
+        $propertyId = $request->input('property_id');
+        $property = null;
+        
+        if ($propertyId) {
+            $property = Property::findOrFail($propertyId);
+        }
+        
+        $properties = [];
+        $agents = [];
+        
+        $user = Auth::user();
+        
+        if ($user->isSuperAdmin()) {
+            $properties = Property::where('status', 'active')->get();
+            $agents = User::whereHas('agent')->get();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyIds = $user->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+            $properties = Property::whereIn('company_id', $companyIds)->where('status', 'active')->get();
+            $agents = User::whereHas('agent', function($q) use ($companyIds) {
+                $q->whereHas('agency', function($q) use ($companyIds) {
+                    $q->whereIn('company_id', $companyIds);
+                });
+            })->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $properties = Property::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->where('status', 'active')->get();
+            $agents = User::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->get();
+        } elseif ($user->isAgent()) {
+            $properties = Property::where('agent_id', $user->agent->id)->where('status', 'active')->get();
+            $agents = [Auth::user()];
+        } else {
+            // Client normal
+            $properties = Property::where('status', 'active')->get();
+            
+            if ($property) {
+                $agents = User::whereHas('agent', function($q) use ($property) {
+                    $q->whereHas('agency', function($q) use ($property) {
+                        $q->where('id', $property->agency_id);
+                    });
+                })->get();
+            } else {
+                $agents = User::whereHas('agent')->get();
+            }
+        }
+        
+        return view('visits.create', compact('property', 'properties', 'agents'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'property_id' => 'required|exists:properties,id',
+            'agent_id' => 'nullable|exists:users,id',
+            'visit_date' => 'required|date|after_or_equal:today',
+            'visit_time_start' => 'required|date_format:H:i',
+            'visit_time_end' => 'required|date_format:H:i|after:visit_time_start',
+            'notes' => 'nullable|string',
+        ]);
+        
+        $property = Property::findOrFail($validated['property_id']);
+        
+        // Si aucun agent n'est spécifié, assigner automatiquement l'agent de la propriété
+        if (!$request->has('agent_id') && $property->agent_id) {
+            $validated['agent_id'] = $property->agent_id;
+        }
+        
+        $visit = new PropertyVisit();
+        $visit->property_id = $validated['property_id'];
+        $visit->visitor_id = Auth::id();
+        $visit->agent_id = $validated['agent_id'] ?? null;
+        $visit->visit_date = $validated['visit_date'];
+        $visit->visit_time_start = $validated['visit_time_start'];
+        $visit->visit_time_end = $validated['visit_time_end'];
+        $visit->status = 'pending';
+        $visit->notes = $validated['notes'] ?? null;
+        $visit->confirmation_code = Str::random(8);
+        $visit->save();
+        
+        // Notifier l'agent
+        if ($visit->agent_id) {
+            $agent = User::find($visit->agent_id);
+            $agent->notify(new VisitRequestedNotification($visit));
+        }
+        
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Demande de visite créée avec succès.');
+    }
+
     public function show(PropertyVisit $visit)
     {
-        // Vérifier que l'utilisateur a le droit de voir cette visite
         $this->authorize('view', $visit);
-
-        return view('properties.visits.show', compact('visit'));
+        
+        $visit->load(['property', 'visitor', 'agent']);
+        
+        return view('visits.show', compact('visit'));
     }
 
-    /**
-     * Afficher la liste des visites de l'utilisateur.
-     */
-    public function index()
+    public function edit(PropertyVisit $visit)
     {
-        $user = auth()->user();
-        
-        $upcomingVisits = $user->requestedVisits()
-            ->with('property')
-            ->upcoming()
-            ->orderBy('visit_date')
-            ->orderBy('visit_time_start')
-            ->get();
-            
-        $pastVisits = $user->requestedVisits()
-            ->with('property')
-            ->past()
-            ->orderByDesc('visit_date')
-            ->orderByDesc('visit_time_start')
-            ->get();
-
-        return view('properties.visits.index', compact('upcomingVisits', 'pastVisits'));
-    }
-
-    /**
-     * Afficher la liste des visites assignées à l'agent.
-     */
-    public function agentIndex()
-    {
-        $user = auth()->user();
-        
-        // Vérifier que l'utilisateur est un agent
-        if (!$user->hasRole('agent') && !$user->hasRole('admin')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Vous n\'avez pas accès à cette page.');
-        }
-        
-        $pendingVisits = $user->assignedVisits()
-            ->with('property', 'visitor')
-            ->pending()
-            ->orderBy('visit_date')
-            ->orderBy('visit_time_start')
-            ->get();
-            
-        $confirmedVisits = $user->assignedVisits()
-            ->with('property', 'visitor')
-            ->confirmed()
-            ->upcoming()
-            ->orderBy('visit_date')
-            ->orderBy('visit_time_start')
-            ->get();
-            
-        $pastVisits = $user->assignedVisits()
-            ->with('property', 'visitor')
-            ->whereIn('status', ['confirmed', 'completed'])
-            ->past()
-            ->orderByDesc('visit_date')
-            ->orderByDesc('visit_time_start')
-            ->get();
-
-        return view('properties.visits.agent-index', compact('pendingVisits', 'confirmedVisits', 'pastVisits'));
-    }
-
-    /**
-     * Confirmer une visite (par l'agent).
-     */
-    public function confirm(PropertyVisit $visit)
-    {
-        // Vérifier que l'utilisateur est l'agent assigné à cette visite
         $this->authorize('update', $visit);
         
-        if (!$visit->isPending()) {
+        $properties = [];
+        $agents = [];
+        
+        $user = Auth::user();
+        
+        if ($user->isSuperAdmin()) {
+            $properties = Property::where('status', 'active')->get();
+            $agents = User::whereHas('agent')->get();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyIds = $user->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+            $properties = Property::whereIn('company_id', $companyIds)->where('status', 'active')->get();
+            $agents = User::whereHas('agent', function($q) use ($companyIds) {
+                $q->whereHas('agency', function($q) use ($companyIds) {
+                    $q->whereIn('company_id', $companyIds);
+                });
+            })->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $properties = Property::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->where('status', 'active')->get();
+            $agents = User::whereHas('agent', function($q) use ($agencyId) {
+                $q->where('agency_id', $agencyId);
+            })->get();
+        } elseif ($user->isAgent()) {
+            $properties = Property::where('agent_id', $user->agent->id)->where('status', 'active')->get();
+            $agents = [Auth::user()];
+        } else {
+            // Client normal
+            $properties = Property::where('status', 'active')->get();
+            $agents = User::whereHas('agent', function($q) use ($visit) {
+                $q->whereHas('agency', function($q) use ($visit) {
+                    $q->where('id', $visit->property->agency_id);
+                });
+            })->get();
+        }
+        
+        return view('visits.edit', compact('visit', 'properties', 'agents'));
+    }
+
+    public function update(Request $request, PropertyVisit $visit)
+    {
+        $this->authorize('update', $visit);
+        
+        $validated = $request->validate([
+            'property_id' => 'required|exists:properties,id',
+            'agent_id' => 'nullable|exists:users,id',
+            'visit_date' => 'required|date|after_or_equal:today',
+            'visit_time_start' => 'required|date_format:H:i',
+            'visit_time_end' => 'required|date_format:H:i|after:visit_time_start',
+            'notes' => 'nullable|string',
+        ]);
+        
+        // Vérifier que l'utilisateur a le droit de modifier cette visite
+        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isCompanyAdmin() && !Auth::user()->isAgencyAdmin()) {
+            if (Auth::user()->isAgent() && $visit->agent_id !== Auth::id()) {
+                return redirect()->back()
+                    ->withErrors(['agent_id' => 'Vous n\'avez pas le droit de modifier cette visite.'])
+                    ->withInput();
+            } elseif (!Auth::user()->isAgent() && $visit->visitor_id !== Auth::id()) {
+                return redirect()->back()
+                    ->withErrors(['visitor_id' => 'Vous n\'avez pas le droit de modifier cette visite.'])
+                    ->withInput();
+            }
+        }
+        
+        $oldAgentId = $visit->agent_id;
+        
+        $visit->property_id = $validated['property_id'];
+        $visit->agent_id = $validated['agent_id'] ?? null;
+        $visit->visit_date = $validated['visit_date'];
+        $visit->visit_time_start = $validated['visit_time_start'];
+        $visit->visit_time_end = $validated['visit_time_end'];
+        $visit->notes = $validated['notes'] ?? null;
+        $visit->save();
+        
+        // Notifier le nouvel agent si changé
+        if ($visit->agent_id && $visit->agent_id !== $oldAgentId) {
+            $agent = User::find($visit->agent_id);
+            $agent->notify(new VisitRequestedNotification($visit));
+        }
+        
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Visite mise à jour avec succès.');
+    }
+
+    public function destroy(PropertyVisit $visit)
+    {
+        $this->authorize('delete', $visit);
+        
+        $visit->delete();
+        
+        return redirect()->route('visits.index')
+            ->with('success', 'Visite supprimée avec succès.');
+    }
+
+    public function confirm(PropertyVisit $visit)
+    {
+        $this->authorize('confirm', $visit);
+        
+        if ($visit->status !== 'pending') {
             return redirect()->back()
                 ->with('error', 'Cette visite ne peut pas être confirmée car elle n\'est pas en attente.');
         }
         
-        $visit->update([
-            'status' => 'confirmed',
-        ]);
+        $visit->status = 'confirmed';
+        $visit->save();
         
         // Notifier le visiteur
-        $visit->visitor->notify(new VisitConfirmedNotification($visit));
+        $visitor = User::find($visit->visitor_id);
+        $visitor->notify(new VisitConfirmedNotification($visit));
         
-        return redirect()->route('agent.visits.index')
-            ->with('success', 'La visite a été confirmée avec succès.');
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Visite confirmée avec succès.');
     }
 
-    /**
-     * Marquer une visite comme terminée (par l'agent).
-     */
     public function complete(PropertyVisit $visit)
     {
-        // Vérifier que l'utilisateur est l'agent assigné à cette visite
-        $this->authorize('update', $visit);
+        $this->authorize('complete', $visit);
         
-        if (!$visit->isConfirmed()) {
+        if ($visit->status !== 'confirmed') {
             return redirect()->back()
                 ->with('error', 'Cette visite ne peut pas être marquée comme terminée car elle n\'est pas confirmée.');
         }
         
-        $visit->update([
-            'status' => 'completed',
-        ]);
+        $visit->status = 'completed';
+        $visit->save();
         
-        return redirect()->route('agent.visits.index')
-            ->with('success', 'La visite a été marquée comme terminée avec succès.');
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Visite marquée comme terminée avec succès.');
     }
 
-    /**
-     * Afficher le formulaire d'annulation d'une visite.
-     */
-    public function cancelForm(PropertyVisit $visit)
-    {
-        // Vérifier que l'utilisateur a le droit d'annuler cette visite
-        $this->authorize('cancel', $visit);
-        
-        if ($visit->isCancelled() || $visit->isCompleted()) {
-            return redirect()->back()
-                ->with('error', 'Cette visite ne peut pas être annulée car elle est déjà terminée ou annulée.');
-        }
-        
-        return view('properties.visits.cancel', compact('visit'));
-    }
-
-    /**
-     * Annuler une visite.
-     */
     public function cancel(Request $request, PropertyVisit $visit)
     {
-        // Vérifier que l'utilisateur a le droit d'annuler cette visite
         $this->authorize('cancel', $visit);
         
-        $request->validate([
-            'cancellation_reason' => 'required|string|max:500',
-        ]);
-        
-        if ($visit->isCancelled() || $visit->isCompleted()) {
+        if ($visit->status === 'completed') {
             return redirect()->back()
-                ->with('error', 'Cette visite ne peut pas être annulée car elle est déjà terminée ou annulée.');
+                ->with('error', 'Cette visite ne peut pas être annulée car elle est déjà terminée.');
         }
         
-        $visit->update([
-            'status' => 'cancelled',
-            'cancellation_reason' => $request->cancellation_reason,
-            'cancelled_by' => auth()->id(),
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string',
         ]);
         
-        // Notifier l'autre partie (agent ou visiteur)
-        $notifyUser = auth()->id() === $visit->visitor_id ? $visit->agent : $visit->visitor;
-        if ($notifyUser) {
-            $notifyUser->notify(new VisitCancelledNotification($visit));
+        $visit->status = 'cancelled';
+        $visit->cancellation_reason = $validated['cancellation_reason'];
+        $visit->cancelled_by = Auth::id();
+        $visit->save();
+        
+        // Notifier l'autre partie
+        if ($visit->visitor_id === Auth::id() && $visit->agent_id) {
+            $agent = User::find($visit->agent_id);
+            $agent->notify(new VisitCancelledNotification($visit));
+        } elseif ($visit->agent_id === Auth::id() || Auth::user()->isAgencyAdmin() || Auth::user()->isCompanyAdmin() || Auth::user()->isSuperAdmin()) {
+            $visitor = User::find($visit->visitor_id);
+            $visitor->notify(new VisitCancelledNotification($visit));
         }
         
-        return redirect()->route(auth()->user()->hasRole('agent') ? 'agent.visits.index' : 'visits.index')
-            ->with('success', 'La visite a été annulée avec succès.');
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Visite annulée avec succès.');
     }
 
-    /**
-     * Réassigner une visite à un autre agent (admin uniquement).
-     */
-    public function reassign(Request $request, PropertyVisit $visit)
+    public function addNote(Request $request, PropertyVisit $visit)
     {
-        // Vérifier que l'utilisateur est un administrateur
-        if (!auth()->user()->hasRole('admin')) {
-            return redirect()->back()
-                ->with('error', 'Vous n\'avez pas les droits pour réassigner cette visite.');
-        }
+        $this->authorize('update', $visit);
         
-        $request->validate([
-            'agent_id' => 'required|exists:users,id',
+        $validated = $request->validate([
+            'visitor_notes' => 'required|string',
         ]);
         
-        // Vérifier que le nouvel agent est bien un agent
-        $newAgent = User::find($request->agent_id);
-        if (!$newAgent->hasRole('agent')) {
-            return redirect()->back()
-                ->with('error', 'L\'utilisateur sélectionné n\'est pas un agent.');
+        $visit->visitor_notes = $validated['visitor_notes'];
+        $visit->save();
+        
+        return redirect()->route('visits.show', $visit)
+            ->with('success', 'Note ajoutée avec succès.');
+    }
+
+    public function calendar()
+    {
+        $user = Auth::user();
+        
+        $visits = [];
+        
+        if ($user->isSuperAdmin()) {
+            $visits = PropertyVisit::with(['property', 'visitor', 'agent'])->get();
+        } elseif ($user->isCompanyAdmin()) {
+            $companyIds = $user->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+            $visits = PropertyVisit::with(['property', 'visitor', 'agent'])
+                ->whereHas('property', function($q) use ($companyIds) {
+                    $q->whereIn('company_id', $companyIds);
+                })->get();
+        } elseif ($user->isAgencyAdmin()) {
+            $agencyId = $user->agent->agency_id;
+            $visits = PropertyVisit::with(['property', 'visitor', 'agent'])
+                ->whereHas('agent', function($q) use ($agencyId) {
+                    $q->whereHas('agency', function($q) use ($agencyId) {
+                        $q->where('id', $agencyId);
+                    });
+                })->get();
+        } elseif ($user->isAgent()) {
+            $visits = PropertyVisit::with(['property', 'visitor'])
+                ->where('agent_id', $user->id)
+                ->get();
+        } else {
+            // Client normal
+            $visits = PropertyVisit::with(['property', 'agent'])
+                ->where('visitor_id', $user->id)
+                ->get();
         }
         
-        $visit->update([
-            'agent_id' => $request->agent_id,
-        ]);
-        
-        // Notifier le nouvel agent
-        $newAgent->notify(new VisitRequestedNotification($visit));
-        
-        return redirect()->back()
-            ->with('success', 'La visite a été réassignée avec succès.');
+        return view('visits.calendar', compact('visits'));
     }
 }

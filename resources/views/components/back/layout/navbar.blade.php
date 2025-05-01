@@ -5,7 +5,7 @@
             <img src="/placeholder.svg?height=40&width=40" alt="User Avatar" class="w-10 h-10 rounded-full mr-3">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="font-semibold">Test Test1</p>
+                    <p class="font-semibold">{{ Auth::user()->name }}</p>
                     <p class="text-sm text-gray-500 whitespace-nowrap">Joined on Nov 14, 2024</p>
                 </div>
                 <button class="hidden lg:flex items-center text-gray-500 hover:text-orange-600 ml-16"

@@ -92,4 +92,30 @@ class Company extends Model
         
         return $this->modules()->where('id', $module->id)->wherePivot('is_enabled', true)->exists();
     }
+
+    public function coupons()
+    {
+        return $this->hasMany(Coupon::class);
+    }
+
+
+    public function agencies()
+    {
+        return $this->hasMany(Agency::class);
+    }
+
+
+    public function activeModules()
+    {
+        return $this->belongsToMany(Module::class, 'company_module')
+            ->wherePivot('is_active', true)
+            ->withTimestamps();
+    }
+
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
+
+
 }

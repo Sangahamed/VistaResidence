@@ -11,96 +11,91 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of the user's notifications.
+     * Afficher toutes les notifications de l'utilisateur.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = PropertyNotification::where('user_id', auth()->id())
-            ->with('property')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-            
-        $unreadCount = PropertyNotification::where('user_id', auth()->id())
-            ->unread()
-            ->count();
-            
-        return view('notifications.index', compact('notifications', 'unreadCount'));
+        $user = $request->user();
+        $notifications = $user->notifications()->paginate(10);
+        
+        return view('notifications.index', compact('notifications'));
     }
-
+    
     /**
-     * Mark a notification as read.
+     * Marquer une notification comme lue.
      */
-    public function markAsRead($id)
+    public function markAsRead(Request $request, $id)
     {
-        $notification = PropertyNotification::where('user_id', auth()->id())
-            ->findOrFail($id);
-            
+        $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
         
-        return redirect()->back()->with('success', 'Notification marquée comme lue.');
+        return response()->json(['success' => true]);
     }
-
+    
     /**
-     * Mark all notifications as read.
+     * Marquer toutes les notifications comme lues.
      */
-    public function markAllAsRead()
+    public function markAllAsRead(Request $request)
     {
-        PropertyNotification::where('user_id', auth()->id())
-            ->unread()
-            ->update(['read_at' => now()]);
-            
-        return redirect()->back()->with('success', 'Toutes les notifications ont été marquées comme lues.');
+        $request->user()->unreadNotifications->markAsRead();
+        
+        return response()->json(['success' => true]);
     }
-
+    
     /**
-     * Show the notification preferences form.
+     * Supprimer une notification.
      */
-    public function showPreferences()
+    public function destroy(Request $request, $id)
     {
-        $preferences = NotificationPreference::firstOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'email_notifications' => true,
-                'push_notifications' => true,
-                'new_property_alerts' => true,
-                'price_change_alerts' => true,
-                'status_change_alerts' => true,
-                'saved_search_alerts' => true,
-                'notification_frequency' => ['type' => 'instant'],
-            ]
-        );
+        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification->delete();
+        
+        return response()->json(['success' => true]);
+    }
+    
+    /**
+     * Afficher les préférences de notification de l'utilisateur.
+     */
+    public function preferences(Request $request)
+    {
+        $user = $request->user();
+        $preferences = $user->notificationPreferences ?? new NotificationPreference();
         
         return view('notifications.preferences', compact('preferences'));
     }
-
+    
     /**
-     * Update the notification preferences.
+     * Mettre à jour les préférences de notification de l'utilisateur.
      */
     public function updatePreferences(Request $request)
     {
+        $user = $request->user();
+        
         $validated = $request->validate([
-            'email_notifications' => 'boolean',
-            'push_notifications' => 'boolean',
-            'new_property_alerts' => 'boolean',
-            'price_change_alerts' => 'boolean',
-            'status_change_alerts' => 'boolean',
-            'saved_search_alerts' => 'boolean',
-            'notification_frequency' => 'required|in:instant,daily,weekly',
+            'email_new_property' => 'boolean',
+            'email_property_status' => 'boolean',
+            'email_new_lead' => 'boolean',
+            'email_lead_assigned' => 'boolean',
+            'email_visit_requested' => 'boolean',
+            'email_visit_status' => 'boolean',
+            'push_new_property' => 'boolean',
+            'push_property_status' => 'boolean',
+            'push_new_lead' => 'boolean',
+            'push_lead_assigned' => 'boolean',
+            'push_visit_requested' => 'boolean',
+            'push_visit_status' => 'boolean',
+            'sms_new_property' => 'boolean',
+            'sms_property_status' => 'boolean',
+            'sms_new_lead' => 'boolean',
+            'sms_lead_assigned' => 'boolean',
+            'sms_visit_requested' => 'boolean',
+            'sms_visit_status' => 'boolean',
         ]);
         
-        $preferences = NotificationPreference::updateOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'email_notifications' => $request->boolean('email_notifications'),
-                'push_notifications' => $request->boolean('push_notifications'),
-                'new_property_alerts' => $request->boolean('new_property_alerts'),
-                'price_change_alerts' => $request->boolean('price_change_alerts'),
-                'status_change_alerts' => $request->boolean('status_change_alerts'),
-                'saved_search_alerts' => $request->boolean('saved_search_alerts'),
-                'notification_frequency' => ['type' => $validated['notification_frequency']],
-            ]
-        );
+        $preferences = $user->notificationPreferences ?? new NotificationPreference(['user_id' => $user->id]);
+        $preferences->fill($validated);
+        $preferences->save();
         
-        return redirect()->back()->with('success', 'Préférences de notification mises à jour avec succès.');
+        return redirect()->route('notifications.preferences')->with('success', 'Préférences de notification mises à jour avec succès.');
     }
 }
