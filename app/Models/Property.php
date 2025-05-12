@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+
+
 
 class Property extends Model
 {
@@ -53,6 +56,7 @@ class Property extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
+    
 
     public function company()
     {

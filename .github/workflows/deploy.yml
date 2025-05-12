@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql
+        coverage: none
+    
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader --no-interaction
+
+    - name: Update Laravel dependencies
+      run: composer update --no-dev --optimize-autoloader --no-interaction
+
+    - name: Run database migrations
+      run: php artisan migrate --force
+    
+    
+    - name: Compile assets
+      run: |
+        npm ci
+        npm run build
+    
+    - name: Deploy to production
+      uses: deployphp/action@v1
+      with:
+        private-key: ${{ secrets.DEPLOY_KEY }}
+        dep: deploy production

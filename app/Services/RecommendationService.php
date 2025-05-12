@@ -17,133 +17,84 @@ class RecommendationService
      * Get personalized recommendations for a user.
      */
     public function getRecommendationsForUser(User $user, $limit = 10)
-    {
-        // Get user preferences
-        $preferences = UserPreference::where('user_id', $user->id)->first();
+{
+    // Get user preferences
+    $preferences = UserPreference::where('user_id', $user->id)->first();
+    
+    // Get user's viewed properties
+    $viewedPropertyIds = PropertyView::where('user_id', $user->id)
+        ->pluck('property_id')
+        ->toArray();
         
-        // Get user's viewed properties
-        $viewedPropertyIds = PropertyView::where('user_id', $user->id)
-            ->pluck('property_id')
-            ->toArray();
-            
-        // Get user's favorited properties
-        $favoritedPropertyIds = Favorite::where('user_id', $user->id)
-            ->pluck('property_id')
-            ->toArray();
-            
-        // Get user's saved searches
-        $savedSearches = SavedSearch::where('user_id', $user->id)->get();
+    // Get user's favorited properties
+    $favoritedPropertyIds = Favorite::where('user_id', $user->id)
+        ->pluck('property_id')
+        ->toArray();
         
-        // Base query for recommendations
-        $query = Property::where('status', 'active')
-            ->whereNotIn('id', $viewedPropertyIds)
-            ->whereNotIn('id', $favoritedPropertyIds);
-            
-        // Apply preferences if available
-        if ($preferences) {
-            if ($preferences->preferred_locations) {
-                $query->where(function($q) use ($preferences) {
-                    foreach ($preferences->preferred_locations as $location) {
-                        $q->orWhere('city', 'like', "%{$location}%")
-                          ->orWhere('postal_code', 'like', "%{$location}%");
-                    }
-                });
-            }
-            
-            if ($preferences->preferred_property_types) {
-                $query->whereIn('property_type', $preferences->preferred_property_types);
-            }
-            
-            if ($preferences->min_price) {
-                $query->where('price', '>=', $preferences->min_price);
-            }
-            
-            if ($preferences->max_price) {
-                $query->where('price', '<=', $preferences->max_price);
-            }
-            
-            if ($preferences->min_bedrooms) {
-                $query->where('bedrooms', '>=', $preferences->min_bedrooms);
-            }
-            
-            if ($preferences->min_bathrooms) {
-                $query->where('bathrooms', '>=', $preferences->min_bathrooms);
-            }
-            
-            if ($preferences->min_surface) {
-                $query->where('surface', '>=', $preferences->min_surface);
-            }
-            
-            if ($preferences->has_garden) {
-                $query->where('has_garden', true);
-            }
-            
-            if ($preferences->has_balcony) {
-                $query->where('has_balcony', true);
-            }
-            
-            if ($preferences->has_parking) {
-                $query->where('has_parking', true);
-            }
-            
-            if ($preferences->has_elevator) {
-                $query->where('has_elevator', true);
-            }
-        }
+    // Base query for recommendations
+    $query = Property::whereIn('status', ['for_sale', 'for_rent'])
+        ->whereNotIn('id', $viewedPropertyIds)
+        ->whereNotIn('id', $favoritedPropertyIds)
+        ->select([
+            'id',
+            'title',
+            'price',
+            'images',
+            'address',
+            'bedrooms',
+            'bathrooms',
+            'area',
+            'type', 
+            'created_at'
+        ]);
         
-        // Apply saved searches criteria
-        if ($savedSearches->count() > 0) {
-            $query->orWhere(function($mainQuery) use ($savedSearches) {
-                foreach ($savedSearches as $savedSearch) {
-                    $criteria = json_decode($savedSearch->criteria, true);
-                    
-                    $mainQuery->orWhere(function($q) use ($criteria) {
-                        if (isset($criteria['property_type'])) {
-                            $q->where('property_type', $criteria['property_type']);
-                        }
-                        
-                        if (isset($criteria['min_price'])) {
-                            $q->where('price', '>=', $criteria['min_price']);
-                        }
-                        
-                        if (isset($criteria['max_price'])) {
-                            $q->where('price', '<=', $criteria['max_price']);
-                        }
-                        
-                        if (isset($criteria['min_bedrooms'])) {
-                            $q->where('bedrooms', '>=', $criteria['min_bedrooms']);
-                        }
-                        
-                        if (isset($criteria['min_bathrooms'])) {
-                            $q->where('bathrooms', '>=', $criteria['min_bathrooms']);
-                        }
-                        
-                        if (isset($criteria['location'])) {
-                            $q->where(function($locationQuery) use ($criteria) {
-                                $locationQuery->where('city', 'like', "%{$criteria['location']}%")
-                                    ->orWhere('postal_code', 'like', "%{$criteria['location']}%");
-                            });
-                        }
-                    });
+    // Apply preferences if available
+    if ($preferences) {
+        if ($preferences->preferred_locations) {
+            $query->where(function($q) use ($preferences) {
+                foreach ($preferences->preferred_locations as $location) {
+                    $q->orWhere('city', 'like', "%{$location}%")
+                      ->orWhere('postal_code', 'like', "%{$location}%");
                 }
             });
         }
         
-        // Get collaborative recommendations
-        $collaborativeRecommendations = $this->getCollaborativeRecommendations($user, $viewedPropertyIds, $favoritedPropertyIds);
-        
-        // Combine with content-based recommendations
-        if (!empty($collaborativeRecommendations)) {
-            $query->orWhereIn('id', $collaborativeRecommendations);
+        // CORRECTION: Utiliser 'type' au lieu de 'property_type' dans le where
+        if ($preferences->preferred_property_types) {
+            $query->whereIn('type', $preferences->preferred_property_types);
         }
         
-        // Get final recommendations
-        $recommendations = $query->orderBy('created_at', 'desc')
-            ->take($limit)
-            ->get();
-            
-        return $recommendations;
+        if ($preferences->min_price) {
+            $query->where('price', '>=', $preferences->min_price);
+        }
+        
+        if ($preferences->max_price) {
+            $query->where('price', '<=', $preferences->max_price);
+        }
+        
+        if ($preferences->min_bedrooms) {
+            $query->where('bedrooms', '>=', $preferences->min_bedrooms);
+        }
+        
+        if ($preferences->min_bathrooms) {
+            $query->where('bathrooms', '>=', $preferences->min_bathrooms);
+        }
+        
+        if ($preferences->min_surface) {
+            $query->where('area', '>=', $preferences->min_surface); // CORRECTION: 'area' au lieu de 'surface'
+        }
+        
+        if ($preferences->features) {
+            $query->whereIn('features', $preferences->features);
+
+        }
+        
     }
+    
+    return $query->orderBy('created_at', 'desc')
+        ->limit($limit)
+        ->get();
+}
 
     /**
      * Get similar properties based on a specific property.
@@ -170,19 +121,43 @@ class RecommendationService
     /**
      * Get trending properties based on recent views.
      */
-    public function getTrendingProperties($limit = 8)
-    {
-        $lastWeek = Carbon::now()->subWeek();
-        
-        return Property::where('status', 'active')
-            ->select('properties.*', DB::raw('COUNT(property_views.id) as view_count'))
-            ->join('property_views', 'properties.id', '=', 'property_views.property_id')
-            ->where('property_views.last_viewed_at', '>=', $lastWeek)
-            ->groupBy('properties.id')
-            ->orderBy('view_count', 'desc')
-            ->take($limit)
-            ->get();
+ public function getTrendingProperties($limit = 8)
+{
+    $lastWeek = Carbon::now()->subWeek();
+    
+    // D'abord récupérer les IDs des propriétés les plus vues
+    $trendingIds = PropertyView::select('property_id', DB::raw('COUNT(*) as view_count'))
+        ->where('last_viewed_at', '>=', $lastWeek)
+        ->groupBy('property_id')
+        ->orderBy('view_count', 'desc')
+        ->limit($limit)
+        ->pluck('property_id');
+    
+    // Si aucune propriété trouvée, retourner une collection vide
+    if ($trendingIds->isEmpty()) {
+        return collect();
     }
+    
+    // Ensuite récupérer les propriétés complètes
+    return Property::whereIn('id', $trendingIds)
+        ->where('is_featured', true)
+        ->where('status', ['for_sale', 'for_rent']) // Ajout du filtre sur le statut
+        ->select([
+            'id',
+            'title',
+            'price',
+            'status',
+            'images',
+            'address',
+            'bedrooms',
+            'bathrooms',
+            'area',
+            'type',
+            'created_at'
+        ])
+        ->orderByRaw("FIELD(id, ".$trendingIds->implode(',').")")
+        ->get();
+}
 
     /**
      * Get recently viewed properties for a user.

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
 use Bepsvpt\SecureHeaders\SecureHeaders;
 
 
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::component('components.nav-link', 'nav-link');
+        Blade::component('components.responsive-nav-link', 'responsive-nav-link');
+        Blade::component('components.dropdown', 'dropdown');
+        Blade::component('components.dropdown-link', 'dropdown-link');
         if($this->app->environment('production')) {
             URL::forceScheme('https');
         }

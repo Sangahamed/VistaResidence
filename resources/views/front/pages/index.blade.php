@@ -2,407 +2,381 @@
 
 @section('content')
 
-    <section class="relative mt-3">
-        <div class="container-fluid md:mx-4 mx-2">
-            <div class="relative pt-40 pb-52 table w-full rounded-3xl shadow-md overflow-hidden">
-                <div class="absolute inset-0 bg-black/60"></div>
+<section class="relative mt-3">
+    <div class="container-fluid md:mx-4 mx-2">
+        <div class="relative pt-40 pb-52 table w-full rounded-3xl shadow-md overflow-hidden">
+            <div class="absolute inset-0 bg-black/60"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-orange-500/30 to-purple-500/30"></div>
 
-                <div class="container relative">
-                    <div class="grid grid-cols-1">
-                        <div class="md:text-start text-center">
-                            <h1 class="font-bold text-white lg:leading-normal text-4xl lg:text-5xl mb-6"></h1>
-                        </div>
+            <div class="container relative z-10">
+                <div class="grid grid-cols-1">
+                    <div class="md:text-start text-center">
+                        <h1 class="font-bold text-white lg:leading-normal text-4xl lg:text-5xl mb-6 animate-fade-in">
+                            Trouvez votre propriété idéale
+                        </h1>
+                        <p class="text-xl text-white/80 max-w-2xl mx-auto md:mx-0 animate-fade-in delay-100">
+                            Découvrez des milliers d'offres parmi nos biens sélectionnés
+                        </p>
                     </div>
                 </div>
             </div>
-
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="relative md:pb-24 pb-20 mt-16">
-        <div class="container mx-auto px-4">
-            <div class="grid justify-center">
-                <div class="relative -mt-32">
-                    <div class="grid">
-                        <div class="p-6 bg-white dark:bg-slate-900 rounded-xl shadow-lg dark:shadow-gray-700">
-                            <div id="buy-home" role="tabpanel" aria-labelledby="buy-home-tab">
-                                <form action="#" method="GET">
-                                    <div class="text-dark text-start">
-                                        <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+<section class="relative md:pb-24 pb-20 mt-16">
+    <div class="container mx-auto px-4">
+        <div class="grid justify-center">
+            <div class="relative -mt-32">
+                <div class="grid">
+                    <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl dark:shadow-gray-700 transition-all duration-300 hover:shadow-2xl">
+                        <div id="buy-home" role="tabpanel" aria-labelledby="buy-home-tab">
+                            <form action="#" method="GET" class="animate-fade-in delay-200">
+                                <div class="text-dark text-start">
+                                    <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
 
-                                            <!-- Champ de recherche -->
-                                            <div>
-                                                <label for="job-keyword"
-                                                    class="form-label font-medium text-slate-900 dark:text-white">
-                                                    Rechercher <span class="text-red-600">*</span>
-                                                </label>
-                                                <div class="relative mt-2">
-                                                    <i
-                                                        class="uil uil-search icons absolute left-3 top-3 text-gray-400"></i>
-                                                    <input type="text" id="job-keyword" name="keyword"
-                                                        class="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-0"
-                                                        placeholder="Rechercher des mots-clés">
-                                                </div>
-                                            </div>
-
-                                            <!-- Sélection de catégorie -->
-                                            <div>
-                                                <label for="choices-catagory-buy"
-                                                    class="form-label font-medium text-slate-900 dark:text-white">
-                                                    Sélectionnez une catégorie
-                                                </label>
-                                                <div class="relative mt-2">
-                                                    <i
-                                                        class="uil uil-estate icons absolute left-3 top-3 text-gray-400"></i>
-                                                    <select id="choices-catagory-buy" name="category"
-                                                        class="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-0">
-                                                        <option>Maisons</option>
-                                                        <option>Appartements</option>
-                                                        <option>Bureaux</option>
-                                                        <option>Maisons de ville</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <!-- Sélection de ville -->
-                                            <div>
-                                                <label for="choix-de-ville"
-                                                    class="form-label font-medium text-slate-900 dark:text-white">
-                                                    Ville
-                                                </label>
-                                                <div class="relative mt-2">
-                                                    <i
-                                                        class="uil uil-location-point icons absolute left-3 top-3 text-gray-400"></i>
-                                                    <select id="choix-de-ville" name="city"
-                                                        class="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-0">
-                                                        <option>Ville</option>
-                                                        <option>Abidjan</option>
-                                                        <option>Bouake</option>
-                                                        <option>Yamoussokro</option>
-                                                        <option>Korhogo</option>
-                                                        <option>Man</option>
-                                                        <option>Abengourou</option>
-                                                        <option>Daoukro</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <!-- Sélection du prix avec slider -->
-                                            <div>
-                                                <label class="form-label font-medium text-slate-900 dark:text-white">
-                                                    Prix (min - max)
-                                                </label>
-                                                <div class="relative mt-4 space-y-2">
-                                                    <input type="range" id="price-min" name="price-min" min="50000"
-                                                        max="5000000" step="5000" value="50000"
-                                                        class="w-full accent-orange-500/50">
-                                                    <input type="range" id="price-max" name="price-max" min="50000"
-                                                        max="5000000" step="5000" value="500000"
-                                                        class="w-full mt-2 accent-orange-500">
-                                                    <div
-                                                        class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-3 ">
-                                                        <span>Prix minimum : <span class="whitespace-nowrap" id="minPriceValue">50 000</span>
-                                                            Cfa</span>
-                                                        <span>Prix maximum : <span class="whitespace-nowrap" id="maxPriceValue">500 000</span>
-                                                            Cfa</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Bouton de recherche -->
-                                            <div class="lg:mt-6 mt-4">
-                                                <button type="submit" id="search-buy"
-                                                    class="w-full py-3 rounded-lg bg-orange-600 text-white font-semibold hover:bg-orange-700 transition-colors">
-                                                    Rechercher
-                                                </button>
+                                        <!-- Champ de recherche -->
+                                        <div>
+                                            <label for="job-keyword" class="form-label font-medium text-slate-900 dark:text-white">
+                                                Rechercher <span class="text-red-600">*</span>
+                                            </label>
+                                            <div class="relative mt-2">
+                                                <i class="uil uil-search icons absolute left-3 top-3 text-gray-400"></i>
+                                                <input type="text" id="job-keyword" name="keyword"
+                                                    class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300"
+                                                    placeholder="Rechercher des mots-clés">
                                             </div>
                                         </div>
+
+                                        <!-- Sélection de catégorie -->
+                                        <div>
+                                            <label for="choices-catagory-buy" class="form-label font-medium text-slate-900 dark:text-white">
+                                                Catégorie
+                                            </label>
+                                            <div class="relative mt-2">
+                                                <i class="uil uil-estate icons absolute left-3 top-3 text-gray-400"></i>
+                                                <select id="choices-catagory-buy" name="category"
+                                                    class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none">
+                                                    <option>Maisons</option>
+                                                    <option>Appartements</option>
+                                                    <option>Bureaux</option>
+                                                    <option>Maisons de ville</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sélection de ville -->
+                                        <div>
+                                            <label for="choix-de-ville" class="form-label font-medium text-slate-900 dark:text-white">
+                                                Ville
+                                            </label>
+                                            <div class="relative mt-2">
+                                                <i class="uil uil-location-point icons absolute left-3 top-3 text-gray-400"></i>
+                                                <select id="choix-de-ville" name="city"
+                                                    class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:bg-slate-800 dark:border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none">
+                                                    <option>Toutes les villes</option>
+                                                    <option>Abidjan</option>
+                                                    <option>Bouake</option>
+                                                    <option>Yamoussokro</option>
+                                                    <option>Korhogo</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sélection du prix avec slider -->
+                                        <div>
+                                            <label class="form-label font-medium text-slate-900 dark:text-white">
+                                                Prix (min - max)
+                                            </label>
+                                            <div class="relative mt-4 space-y-2">
+                                                <input type="range" id="price-min" name="price-min" min="50000"
+                                                    max="5000000" step="5000" value="50000"
+                                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-slider">
+                                                <input type="range" id="price-max" name="price-max" min="50000"
+                                                    max="5000000" step="5000" value="500000"
+                                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-slider">
+                                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-3">
+                                                    <span>Min : <span class="font-medium" id="minPriceValue">50 000</span> Cfa</span>
+                                                    <span>Max : <span class="font-medium" id="maxPriceValue">500 000</span> Cfa</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bouton de recherche -->
+                                        <div class="lg:mt-6 mt-4">
+                                            <button type="submit" id="search-buy"
+                                                class="w-full py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg flex items-center justify-center">
+                                                <i class="fas fa-search mr-2"></i> Rechercher
+                                            </button>
+                                        </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <section class="py-5 lg:py-8 -mt-10">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <!-- Carte d'une propriété -->
-                <div
-                    class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
-                    <div class="relative group">
-                        <!-- Swiper container -->
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <!-- Slides -->
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 1">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 2">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 3">
-                                </div>
-                            </div>
-                            <!-- Pagination -->
-                            <div class="swiper-pagination text-white"></div>
-
-                            <!-- Navigation Buttons -->
-                            <div
-                                class="swiper-button-prev hidden lg:flex absolute top-[60%] left-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </div>
-                            <div
-                                class="swiper-button-next hidden lg:flex absolute top-[60%] right-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-
-
-
-                            <!-- Favorite Button -->
-
-                        </div>
-                        <button
-                            class="favorite-btn absolute top-4 right-4 z-50 p-2 shadow-md hover:text-white transition duration-300 focus:outline-none"
-                            aria-label="Ajouter aux favoris">
-                            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                </path>
-                            </svg>
-                        </button>
-
-                    </div>
-
-                    <div class="p-6 space-y-4">
-                        <h3 class="text-xl font-semibold hover:text-black transition">
-                            10765 Hillshire Ave, Baton Rouge, LA 70810, USA
-                        </h3>
-                        <div class="flex space-x-2">
-                            <span class="bg-black/70 py-1 px-3 text-white text-sm rounded-full">Appartement</span>
-                            <span class="bg-red-700/70 py-1 px-3 text-white text-sm rounded-full">À vendre</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-600 text-sm">Price</p>
-                                <p class="text-2xl font-bold">€5000</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-600 text-sm">Rating</p>
-                                <div class="flex items-center text-yellow-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path
-                                            d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <span class="ml-2 text-sm text-gray-600">5.0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
-                    <div class="relative group">
-                        <!-- Swiper container -->
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <!-- Slides -->
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 1">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 2">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 3">
-                                </div>
-                            </div>
-                            <!-- Pagination -->
-                            <div class="swiper-pagination text-white"></div>
-
-                            <!-- Navigation Buttons -->
-                            <div
-                                class="swiper-button-prev hidden lg:flex absolute top-[60%] left-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </div>
-                            <div
-                                class="swiper-button-next hidden lg:flex absolute top-[60%] right-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-
-
-
-                            <!-- Favorite Button -->
-
-                        </div>
-                        <button
-                            class="favorite-btn absolute top-4 right-4 z-50 p-2 shadow-md hover:text-white transition duration-300 focus:outline-none"
-                            aria-label="Ajouter aux favoris">
-                            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                </path>
-                            </svg>
-                        </button>
-
-                    </div>
-
-                    <div class="p-6 space-y-4">
-                        <h3 class="text-xl font-semibold hover:text-black transition">
-                            10765 Hillshire Ave, Baton Rouge, LA 70810, USA
-                        </h3>
-                        <div class="flex space-x-2">
-                            <span class="bg-black/70 py-1 px-3 text-white text-sm rounded-full">Appartement</span>
-                            <span class="bg-red-700/70 py-1 px-3 text-white text-sm rounded-full">À vendre</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-600 text-sm">Price</p>
-                                <p class="text-2xl font-bold">€5000</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-600 text-sm">Rating</p>
-                                <div class="flex items-center text-yellow-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path
-                                            d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <span class="ml-2 text-sm text-gray-600">5.0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
-                    <div class="relative group">
-                        <!-- Swiper container -->
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <!-- Slides -->
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 1">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 2">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
-                                        class="w-full h-full object-cover" alt="Property 3">
-                                </div>
-                            </div>
-                            <!-- Pagination -->
-                            <div class="swiper-pagination"></div>
-
-                            <!-- Navigation Buttons -->
-                            <div
-                                class="swiper-button-prev hidden lg:flex absolute top-[60%] left-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </div>
-                            <div
-                                class="swiper-button-next hidden lg:flex absolute top-[60%] right-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
-                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-
-
-
-                            <!-- Favorite Button -->
-
-                        </div>
-                        <button
-                            class="favorite-btn absolute top-4 right-4 z-50 p-2 shadow-md hover:text-white transition duration-300 focus:outline-none"
-                            aria-label="Ajouter aux favoris">
-                            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                </path>
-                            </svg>
-                        </button>
-
-                    </div>
-
-                    <div class="p-6 space-y-4">
-                        <h3 class="text-xl font-semibold hover:text-black transition">
-                            10765 Hillshire Ave, Baton Rouge, LA 70810, USA
-                        </h3>
-                        <div class="flex space-x-2">
-                            <span class="bg-black/70 py-1 px-3 text-white text-sm rounded-full">Appartement</span>
-                            <span class="bg-red-700/70 py-1 px-3 text-white text-sm rounded-full">À vendre</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-600 text-sm">Price</p>
-                                <p class="text-2xl font-bold">€5000</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-600 text-sm">Rating</p>
-                                <div class="flex items-center text-yellow-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path
-                                            d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <span class="ml-2 text-sm text-gray-600">5.0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-
-
-    <div class="hidden lg:block fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-        <button class="bg-black text-white px-4 py-2 rounded-full shadow-md">
-            Afficher la carte 🗺️
-        </button>
     </div>
+</section>
 
-    @endsection
+<section class="py-5 lg:py-8 -mt-10">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Nos dernières offres</h2>
+            <a href="#" class="text-orange-600 hover:text-orange-700 font-medium flex items-center transition-all">
+                Voir tout <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Carte de propriété 1 -->
+            <div class="property-card bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group">
+                <div class="relative h-64 overflow-hidden">
+                    <!-- Swiper container -->
+                    <div class="swiper h-full">
+                        <div class="swiper-wrapper">
+                            <!-- Slides -->
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 1">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 2">
+                            </div>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination"></div>
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="absolute top-4 left-4 z-10 flex gap-2">
+                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                            Nouveau
+                        </span>
+                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                            À vendre
+                        </span>
+                    </div>
+
+                    <!-- Bouton favori -->
+                    <button class="favorite-btn absolute top-4 right-4 z-10 p-2 bg-white/80 rounded-full shadow-md transition-all duration-300 hover:bg-white hover:scale-110">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-orange-500 mb-2">
+                        Villa moderne à Cocody
+                    </h3>
+                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-3">
+                        <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                        Abidjan, Cocody
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-bed text-orange-500 mr-2"></i>
+                            4 chambres
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-bath text-orange-500 mr-2"></i>
+                            3 salles de bain
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-ruler-combined text-orange-500 mr-2"></i>
+                            180 m²
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <div class="text-2xl font-bold text-orange-500">
+                            75 000 000 FCFA
+                        </div>
+                        <a href="#" class="text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-colors duration-300">
+                            Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte de propriété 2 -->
+            <div class="property-card bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group">
+                <div class="relative h-64 overflow-hidden">
+                    <!-- Swiper container -->
+                    <div class="swiper h-full">
+                        <div class="swiper-wrapper">
+                            <!-- Slides -->
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 2">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 3">
+                            </div>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination"></div>
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="absolute top-4 left-4 z-10 flex gap-2">
+                        <span class="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                            Location
+                        </span>
+                    </div>
+
+                    <!-- Bouton favori -->
+                    <button class="favorite-btn absolute top-4 right-4 z-10 p-2 bg-white/80 rounded-full shadow-md transition-all duration-300 hover:bg-white hover:scale-110">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-orange-500 mb-2">
+                        Appartement meublé à Plateau
+                    </h3>
+                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-3">
+                        <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                        Abidjan, Plateau
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-bed text-orange-500 mr-2"></i>
+                            2 chambres
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-bath text-orange-500 mr-2"></i>
+                            1 salle de bain
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-ruler-combined text-orange-500 mr-2"></i>
+                            80 m²
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <div class="text-2xl font-bold text-orange-500">
+                            350 000 FCFA/mois
+                        </div>
+                        <a href="#" class="text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-colors duration-300">
+                            Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte de propriété 3 -->
+            <div class="property-card bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group">
+                <div class="relative h-64 overflow-hidden">
+                    <!-- Swiper container -->
+                    <div class="swiper h-full">
+                        <div class="swiper-wrapper">
+                            <!-- Slides -->
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/4e26e5ec-0c7d-4f6a-8580-f8a00f45081e.jpg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 3">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="https://a0.muscache.com/im/pictures/miso/Hosting-39793877/original/a0d92972-40f3-46af-a507-f93f5b945702.jpeg?im_w=720"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="Property 4">
+                            </div>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination"></div>
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="absolute top-4 left-4 z-10 flex gap-2">
+                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                            À vendre
+                        </span>
+                    </div>
+
+                    <!-- Bouton favori -->
+                    <button class="favorite-btn absolute top-4 right-4 z-10 p-2 bg-white/80 rounded-full shadow-md transition-all duration-300 hover:bg-white hover:scale-110">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-orange-500 mb-2">
+                        Terrain constructible à Yopougon
+                    </h3>
+                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-3">
+                        <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                        Abidjan, Yopougon
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-vector-square text-orange-500 mr-2"></i>
+                            500 m²
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fas fa-tag text-orange-500 mr-2"></i>
+                            Zone résidentielle
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <div class="text-2xl font-bold text-orange-500">
+                            25 000 000 FCFA
+                        </div>
+                        <a href="#" class="text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-colors duration-300">
+                            Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-orange-500 to-purple-600 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl lg:text-4xl font-bold mb-6 animate-fade-in">Vous cherchez quelque chose de spécifique ?</h2>
+        <p class="text-xl mb-8 max-w-2xl mx-auto animate-fade-in delay-100">
+            Notre équipe d'experts peut vous aider à trouver la propriété parfaite.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in delay-200">
+            <a href="#" class="px-8 py-3 bg-white text-orange-600 font-bold rounded-lg hover:bg-gray-100 transition-colors duration-300 transform hover:-translate-y-1">
+                Parlez à un expert
+            </a>
+            <a href="#" class="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white/10 transition-colors duration-300 transform hover:-translate-y-1">
+                Voir toutes les offres
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Fixed CTA Button -->
+<div class="fixed bottom-6 right-6 z-50">
+    <a href="#" class="flex items-center justify-center w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-xl transition-all duration-300 transform hover:scale-110">
+        <i class="fas fa-phone-alt text-xl"></i>
+    </a>
+</div>
+
+@endsection

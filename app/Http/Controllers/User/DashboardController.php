@@ -21,28 +21,27 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ChMessage;
+use Chatify\Facades\ChatifyMessenger as Chatify;
 
 
 
 class DashboardController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
+    
 
     public function messages()
     {
         $userId = Auth::id();
 
-        // Récupérer les derniers messages groupés par utilisateur correspondant à l'utilisateur connecté
-        $conversations = ChMessage::select(DB::raw('IF(from_id = '.$userId.', to_id, from_id) as user_id'))
-            ->where(function ($query) use ($userId) {
-                $query->where('from_id', $userId)
-                    ->orWhere('to_id', $userId);
-            })
-            ->groupBy('user_id')
-            ->get();
+        $conversations = ChMessage::select(
+            DB::raw('IF(from_id = ?, to_id, from_id) as user_id', [$userId])
+        )
+        ->where(function ($query) use ($userId) {
+            $query->where('from_id', $userId)
+                ->orWhere('to_id', $userId);
+        })
+        ->groupBy('user_id')
+        ->get();
 
         return view('dashboard.messages', compact('conversations'));
     }
@@ -190,52 +189,6 @@ class DashboardController extends Controller
         ));
     }
 
-    /**
-     * Tableau de bord pour les entreprises (agences immobilières)
-     */
-    public function companyDashboard()
-    {
-        $user = auth()->user();
-        $company = $user->company;
-    
-        if (!$company) {
-            return redirect()->route('company.create')->with('info', 'Vous devez d\'abord créer votre entreprise.');
-        }
-    
-        if ($company->isPending()) {
-            return view('dashboard.company.pending');
-        }
-    
-        if ($company->isRejected()) {
-            return view('dashboard.company.rejected');
-        }
-    
-        $companyIds = $user->hasRole('super-admin') 
-            ? Company::pluck('id')->toArray() 
-            : $user->companies->pluck('id')->toArray();
-    
-        $agencyIds = \App\Models\Agency::whereIn('company_id', $companyIds)->pluck('id')->toArray();
-    
-        $stats = [
-            'properties_count' => Property::whereIn('company_id', $companyIds)->count(),
-            'team_members' => \DB::table('company_user')->whereIn('company_id', $companyIds)->distinct('user_id')->count('user_id'),
-            'active_projects' => Project::whereIn('company_id', $companyIds)->where('status', 'in_progress')->count(),
-            'completed_tasks' => Task::whereHas('project', fn($q) => $q->whereIn('company_id', $companyIds))->where('status', 'completed')->count(),
-            'agencies' => count($agencyIds),
-            'companies' => count($companyIds),
-            'users' => \DB::table('company_user')->whereIn('company_id', $companyIds)->distinct('user_id')->count('user_id') + 
-                       \DB::table('agency_agent')->whereIn('agency_id', $agencyIds)->distinct('user_id')->count('user_id'),
-            'projects' => Project::whereIn('company_id', $companyIds)->count(),
-            'tasks' => Task::whereHas('project', fn($q) => $q->whereIn('company_id', $companyIds))->count(),
-        ];
-    
-        $recentProjects = Project::whereIn('company_id', $companyIds)->latest()->take(5)->get();
-        $recentTasks = Task::whereHas('project', fn($q) => $q->whereIn('company_id', $companyIds))->latest()->take(5)->get();
-        $properties = Property::whereIn('company_id', $companyIds)->latest()->take(6)->get();
-    
-        return view('dashboard.company', compact('stats', 'recentProjects', 'recentTasks', 'properties'));
-    }
-
     public function switchToIndividual()
     {
         $user = Auth::user();
@@ -251,4 +204,61 @@ class DashboardController extends Controller
         return back()->with('error', 'Vous ne pouvez pas effectuer cette action.');
     }    
 
+
+    /**
+     * Tableau de bord pour les entreprises (agences immobilières)
+     */
+    public function companyDashboard()
+    {
+        $user = auth()->user();
+        $company = $user->company;
+         
+        if (!$company) {
+            return redirect()->route('companies.create')->with('info', 'Vous devez d\'abord créer votre entreprise.');
+        }
+    
+        if ($company->isRejected()) {
+                return redirect()->route('home')
+                    ->with('error', 'Entreprise rejetée. Contactez l\'administration.');
+        }
+    
+        // Récupération des données
+        $companyIds = $this->getAccessibleCompanyIds($user);
+        $agencyIds = \App\Models\Agency::whereIn('company_id', $companyIds)->pluck('id')->toArray();
+        $stats = $this->getCompanyStats($companyIds);
+    
+       
+        return view('dashboard.company', [
+            'stats' => $stats,
+            'recentProjects' => $this->getRecentProjects($companyIds),
+            'recentTasks' => $this->getRecentTasks($companyIds),
+            'properties' => $this->getRecentProperties($companyIds)
+        ]);
+    }
+
+    protected function getAccessibleCompanyIds($user)
+    {
+        return $user->hasPermission('manage-all-companies') 
+            ? Company::pluck('id')->toArray()
+            : $user->companies()->pluck('id')->toArray();
+    }
+
+    protected function getCompanyStats($companyIds)
+    {
+        return [
+                'properties_count' => Property::whereIn('company_id', $companyIds)->count(),
+                'team_members' => \DB::table('company_user')->whereIn('company_id', $companyIds)->distinct('owner_id')->count('owner_id'),
+                'active_projects' => Project::whereIn('company_id', $companyIds)->where('status', 'in_progress')->count(),
+                'completed_tasks' => Task::whereHas('project', fn($q) => $q->whereIn('company_id', $companyIds))->where('status', 'completed')->count(),
+                'agencies' => count($agencyIds),
+                'companies' => count($companyIds),
+                'users' => \DB::table('company_user')->whereIn('company_id', $companyIds)->distinct('owner_id')->count('owner_id') + 
+                        \DB::table('agency_agent')->whereIn('agency_id', $agencyIds)->distinct('owner_id')->count('owner_id'),
+                'projects' => Project::whereIn('company_id', $companyIds)->count(),
+                'tasks' => Task::whereHas('project', fn($q) => $q->whereIn('company_id', $companyIds))->count(),
+            
+        ];
+    }
+
+ 
 }

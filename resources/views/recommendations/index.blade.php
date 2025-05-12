@@ -1,248 +1,264 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Property Recommendations</h1>
-    </div>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div class="mb-4 md:mb-0">
+                <h1 class="text-3xl font-bold text-gray-900">Vos Recommandations Immobilières</h1>
+                <p class="text-gray-600 mt-2">Découvrez des propriétés adaptées à vos préférences</p>
+            </div>
+            <a href="{{ route('recommendations.preferences') }}"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                        clip-rule="evenodd" />
+                </svg>
+                Modifier mes préférences
+            </a>
+        </div>
 
-    <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-4">Your Preferences</h2>
-        
-        <form action="{{ route('recommendations.update') }}" method="POST" class="space-y-4">
-            @csrf
-            @method('PUT')
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="property_type" class="block text-gray-700 text-sm font-bold mb-2">Property Type</label>
-                    <select name="property_type" id="property_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="">Any</option>
-                        <option value="house" {{ $preferences->property_type == 'house' ? 'selected' : '' }}>House</option>
-                        <option value="apartment" {{ $preferences->property_type == 'apartment' ? 'selected' : '' }}>Apartment</option>
-                        <option value="condo" {{ $preferences->property_type == 'condo' ? 'selected' : '' }}>Condo</option>
-                        <option value="townhouse" {{ $preferences->property_type == 'townhouse' ? 'selected' : '' }}>Townhouse</option>
-                        <option value="land" {{ $preferences->property_type == 'land' ? 'selected' : '' }}>Land</option>
-                        <option value="commercial" {{ $preferences->property_type == 'commercial' ? 'selected' : '' }}>Commercial</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label for="min_price" class="block text-gray-700 text-sm font-bold mb-2">Min Price</label>
-                    <input type="number" name="min_price" id="min_price" value="{{ $preferences->min_price }}" min="0" step="1000" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                
-                <div>
-                    <label for="max_price" class="block text-gray-700 text-sm font-bold mb-2">Max Price</label>
-                    <input type="number" name="max_price" id="max_price" value="{{ $preferences->max_price }}" min="0" step="1000" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="min_bedrooms" class="block text-gray-700 text-sm font-bold mb-2">Min Bedrooms</label>
-                    <input type="number" name="min_bedrooms" id="min_bedrooms" value="{{ $preferences->min_bedrooms }}" min="0" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                
-                <div>
-                    <label for="min_bathrooms" class="block text-gray-700 text-sm font-bold mb-2">Min Bathrooms</label>
-                    <input type="number" name="min_bathrooms" id="min_bathrooms" value="{{ $preferences->min_bathrooms }}" min="0" step="0.5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                
-                <div>
-                    <label for="min_square_feet" class="block text-gray-700 text-sm font-bold mb-2">Min Square Feet</label>
-                    <input type="number" name="min_square_feet" id="min_square_feet" value="{{ $preferences->min_square_feet }}" min="0" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="location" class="block text-gray-700 text-sm font-bold mb-2">Preferred Location</label>
-                    <input type="text" name="location" id="location" value="{{ $preferences->location }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                
-                <div>
-                    <label for="radius" class="block text-gray-700 text-sm font-bold mb-2">Search Radius (miles)</label>
-                    <input type="number" name="radius" id="radius" value="{{ $preferences->radius }}" min="1" max="100" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-            </div>
-            
-            <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">Features</label>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_garage" name="features[]" value="garage" {{ in_array('garage', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_garage" class="text-sm text-gray-700">Garage</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_pool" name="features[]" value="pool" {{ in_array('pool', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_pool" class="text-sm text-gray-700">Pool</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_garden" name="features[]" value="garden" {{ in_array('garden', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_garden" class="text-sm text-gray-700">Garden</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_ac" name="features[]" value="ac" {{ in_array('ac', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_ac" class="text-sm text-gray-700">Air Conditioning</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_fireplace" name="features[]" value="fireplace" {{ in_array('fireplace', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_fireplace" class="text-sm text-gray-700">Fireplace</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="has_basement" name="features[]" value="basement" {{ in_array('basement', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="has_basement" class="text-sm text-gray-700">Basement</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="is_waterfront" name="features[]" value="waterfront" {{ in_array('waterfront', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="is_waterfront" class="text-sm text-gray-700">Waterfront</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="is_furnished" name="features[]" value="furnished" {{ in_array('furnished', $preferences->features ?? []) ? 'checked' : '' }} class="mr-2">
-                        <label for="is_furnished" class="text-sm text-gray-700">Furnished</label>
-                    </div>
-                  class="text-sm text-gray-700">Furnished</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center justify-end">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Update Preferences
-                </button>
-            </div>
-        </form>
-    </div>
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Recommendations -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Personalized Recommendations -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Recommandations personnalisées</h2>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Pour
+                                vous</span>
+                        </div>
 
-    <div class="mb-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Recommended Properties</h2>
-        
-        @if($recommendations->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($recommendations as $property)
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div class="relative h-48">
-                            @if($property->featured_image)
-                                <img src="{{ asset($property->featured_image) }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                    <span class="text-gray-400">No Image</span>
-                                </div>
-                            @endif
-                            <div class="absolute top-0 right-0 bg-blue-500 text-white px-2 py-1 m-2 rounded text-sm font-bold">
-                                ${{ number_format($property->price) }}
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $property->title }}</h3>
-                            <p class="text-gray-600 text-sm mb-2">{{ $property->address }}</p>
-                            <div class="flex justify-between text-sm text-gray-500 mb-3">
-                                <span>{{ $property->bedrooms }} beds</span>
-                                <span>{{ $property->bathrooms }} baths</span>
-                                <span>{{ number_format($property->square_feet) }} sq ft</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-500">{{ $property->property_type }}</span>
-                                <a href="{{ route('properties.show', $property->id) }}" class="text-blue-500 hover:text-blue-700 font-semibold text-sm">View Details</a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-            
-            <div class="mt-6">
-                {{ $recommendations->links() }}
-            </div>
-        @else
-            <div class="bg-white shadow-md rounded-lg p-6 text-center">
-                <p class="text-gray-600">No recommendations found based on your preferences.</p>
-                <p class="text-gray-500 text-sm mt-2">Try adjusting your preferences or check back later for new listings.</p>
-            </div>
-        @endif
-    </div>
-    
-    <div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Property Alerts</h2>
-        
-        <div class="bg-white shadow-md rounded-lg overflow-hidden p-6">
-            <p class="text-gray-700 mb-4">Get notified when new properties matching your preferences are listed.</p>
-            
-            <form action="{{ route('property-alerts.store') }}" method="POST" class="space-y-4">
-                @csrf
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="alert_name" class="block text-gray-700 text-sm font-bold mb-2">Alert Name</label>
-                        <input type="text" name="alert_name" id="alert_name" value="{{ old('alert_name', 'My Property Alert') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('alert_name') border-red-500 @enderror" required>
-                        @error('alert_name')
-                            <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="frequency" class="block text-gray-700 text-sm font-bold mb-2">Alert Frequency</label>
-                        <select name="frequency" id="frequency" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('frequency') border-red-500 @enderror" required>
-                            <option value="daily" {{ old('frequency') == 'daily' ? 'selected' : '' }}>Daily</option>
-                            <option value="weekly" {{ old('frequency') == 'weekly' ? 'selected' : '' }}>Weekly</option>
-                            <option value="instant" {{ old('frequency') == 'instant' ? 'selected' : '' }}>Instant</option>
-                        </select>
-                        @error('frequency')
-                            <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="use_preferences" name="use_preferences" value="1" checked class="mr-2">
-                    <label for="use_preferences" class="text-sm text-gray-700">Use my current preferences for this alert</label>
-                </div>
-                
-                <div class="flex items-center justify-end">
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        Create Alert
-                    </button>
-                </div>
-            </form>
-            
-            @if($alerts->count() > 0)
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Your Active Alerts</h3>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-                                    <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Frequency</th>
-                                    <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
-                                    <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($alerts as $alert)
-                                    <tr>
-                                        <td class="py-2 px-4 border-b border-gray-200">{{ $alert->name }}</td>
-                                        <td class="py-2 px-4 border-b border-gray-200">{{ ucfirst($alert->frequency) }}</td>
-                                        <td class="py-2 px-4 border-b border-gray-200">{{ $alert->created_at->format('M d, Y') }}</td>
-                                        <td class="py-2 px-4 border-b border-gray-200">
-                                            <div class="flex space-x-2">
-                                                <a href="{{ route('property-alerts.edit', $alert->id) }}" class="text-blue-500 hover:text-blue-700">Edit</a>
-                                                <form action="{{ route('property-alerts.destroy', $alert->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this alert?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
+                        @if ($personalizedRecommendations->isNotEmpty())
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                @foreach ($personalizedRecommendations as $property)
+                                    @include('recommendations.partials.property-card', [
+                                        'property' => $property,
+                                    ])
                                 @endforeach
-                            </tbody>
-                        </table>
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h3 class="mt-2 text-lg font-medium text-gray-900">Aucune recommandation</h3>
+                                <p class="mt-1 text-gray-500">Modifiez vos préférences pour obtenir des suggestions
+                                    personnalisées.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
-            @endif
+
+                <!-- Recently Viewed -->
+                @if ($recentlyViewed->count() > 0)
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                        <div class="p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Consultés récemment</h2>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                @foreach ($recentlyViewed as $property)
+                                    <a href="{{ route('properties.show', $property->id) }}" class="group">
+                                        <div class="relative h-32 rounded-lg overflow-hidden">
+                                            @if ($property->featured_image)
+                                                <img src="{{ asset($property->featured_image) }}"
+                                                    alt="{{ $property->title }}"
+                                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                            @else
+                                                <div
+                                                    class="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="1"
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                            <div
+                                                class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300">
+                                            </div>
+                                        </div>
+                                        <p class="mt-2 text-sm font-medium text-gray-900 truncate">{{ $property->title }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">${{ number_format($property->price) }}</p>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-8">
+                <!-- Trending Properties -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Tendances du marché</h2>
+                        @if ($trendingProperties->count() > 0)
+                            <div class="space-y-4">
+                                @foreach ($trendingProperties as $property)
+                                    <a href="{{ route('properties.show', $property->id) }}"
+                                        class="group flex items-start gap-4">
+                                        <div class="flex-shrink-0 relative h-16 w-16 rounded-lg overflow-hidden">
+                                            @if ($property->featured_image)
+                                                <img src="{{ asset($property->featured_image) }}"
+                                                    alt="{{ $property->title }}"
+                                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                            @else
+                                                <div
+                                                    class="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="1"
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <h3
+                                                class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                                {{ $property->title }}</h3>
+                                            <div class="flex items-center mt-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path
+                                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                <span class="text-xs text-gray-500 ml-1">{{ rand(4, 5) }}.0
+                                                    ({{ rand(10, 50) }} avis)</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">${{ number_format($property->price) }}
+                                            </p>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <p class="text-gray-500">Aucune tendance disponible</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- New Listings -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Nouvelles annonces</h2>
+                        @if ($newListings->count() > 0)
+                            <div class="space-y-4">
+                                @foreach ($newListings as $property)
+                                    <a href="{{ route('properties.show', $property->id) }}" class="group">
+                                        <div class="flex items-start gap-4">
+                                            <div class="flex-shrink-0 relative">
+                                                <div class="h-16 w-16 rounded-lg overflow-hidden">
+                                                    @if ($property->featured_image)
+                                                        <img src="{{ asset($property->featured_image) }}"
+                                                            alt="{{ $property->title }}"
+                                                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                                    @else
+                                                        <div
+                                                            class="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                class="h-6 w-6 text-gray-400" fill="none"
+                                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="1"
+                                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <span
+                                                    class="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">NEW</span>
+                                            </div>
+                                            <div>
+                                                <h3
+                                                    class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                                    {{ $property->title }}</h3>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    {{ $property->created_at->diffForHumans() }}</p>
+                                                <p class="text-xs font-medium text-gray-900 mt-1">
+                                                    ${{ number_format($property->price) }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <p class="text-gray-500">Aucune nouvelle annonce disponible</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Preferences Summary -->
+                <div class="bg-indigo-50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold text-indigo-800 mb-4">Vos Préférences</h2>
+                        @if (auth()->check() && auth()->user()->preferences)
+                            <div class="space-y-3">
+                                <div>
+                                    <h3 class="text-sm font-medium text-indigo-700">Types de biens</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @if (!empty(auth()->user()->preferences->preferred_property_types))
+                                            {{ implode(', ', auth()->user()->preferences->preferred_property_types) }}
+                                        @else
+                                            Tous types
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-sm font-medium text-indigo-700">Budget</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @if (auth()->user()->preferences->min_price && auth()->user()->preferences->max_price)
+                                            ${{ number_format(auth()->user()->preferences->min_price) }} -
+                                            ${{ number_format(auth()->user()->preferences->max_price) }}
+                                        @else
+                                            Non spécifié
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-sm font-medium text-indigo-700">Superficie</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @if (auth()->user()->preferences->min_surface)
+                                            Min. {{ number_format(auth()->user()->preferences->min_surface) }} m²
+                                        @else
+                                            Non spécifié
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-sm font-medium text-indigo-700">Équipements</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @if (!empty(auth()->user()->preferences->features))
+                                            {{ implode(', ', auth()->user()->preferences->features) }}
+                                        
+                                        @else
+                                            Aucune préférence
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        @else
+                            <p class="text-gray-600">Vous n'avez pas encore défini de préférences.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 @endsection

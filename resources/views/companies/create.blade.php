@@ -1,12 +1,27 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('title', 'Créer une entreprise')
 
 @section('content')
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Créer une nouvelle entreprise</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">Remplissez les informations pour créer une nouvelle entreprise.</p>
+    <main class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        La création d'une entreprise vous permettra de gérer des
+                        équipes, des projets et des propriétés en tant qu'entité
+                        professionnelle. Votre demande sera examinée par un
+                        administrateur.
+                    </p>
+                </div>
+            </div>
         </div>
         <div class="border-t border-gray-200">
             <form action="{{ route('companies.store') }}" method="POST" enctype="multipart/form-data">
@@ -37,26 +52,20 @@
                             @enderror
                         </div>
 
+                        
+
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_name" class="block text-sm font-medium text-gray-700">Nom du contact</label>
-                            <input type="text" name="contact_name" id="contact_name" value="{{ old('contact_name') }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                            @error('contact_name')
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email du contact</label>
+                            <input type="email" name="email" id="email" value="{{ old('email') }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                            @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_email" class="block text-sm font-medium text-gray-700">Email du contact</label>
-                            <input type="email" name="contact_email" id="contact_email" value="{{ old('contact_email') }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                            @error('contact_email')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_phone" class="block text-sm font-medium text-gray-700">Téléphone du contact</label>
-                            <input type="text" name="contact_phone" id="contact_phone" value="{{ old('contact_phone') }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            @error('contact_phone')
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Téléphone du contact</label>
+                            <input type="text" name="phone" id="phone" value="{{ old('phone') }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            @error('phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -119,7 +128,7 @@
                         <div class="col-span-6">
                             <label class="block text-sm font-medium text-gray-700">Modules</label>
                             <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                @foreach ($modules as $module)
+                                @foreach ($modules ?? [] as $module)
                                     <div class="flex items-start">
                                         <div class="flex items-center h-5">
                                             <input id="module_{{ $module->id }}" name="modules[]" type="checkbox" value="{{ $module->id }}" {{ in_array($module->id, old('modules', [])) ? 'checked' : '' }} class="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300 rounded">
@@ -147,5 +156,5 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 @endsection

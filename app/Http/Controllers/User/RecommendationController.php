@@ -6,76 +6,125 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\UserPreference;
 use App\Services\RecommendationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class RecommendationController extends Controller
 {
-    protected $recommendationService;
+    protected RecommendationService $recommendationService;
 
     public function __construct(RecommendationService $recommendationService)
     {
+        // $this->middleware('auth')->only(['editPreferences', 'updatePreferences']);
         $this->recommendationService = $recommendationService;
     }
 
     /**
-     * Display personalized recommendations.
+     * Affiche la page des recommandations
      */
-    public function index()
+    public function index(): View
     {
-        // Get personalized recommendations for authenticated user
-        if (auth()->check()) {
-            $personalizedRecommendations = $this->recommendationService->getRecommendationsForUser(auth()->user(), 8);
-            $recentlyViewed = $this->recommendationService->getRecentlyViewedProperties(auth()->user(), 4);
+        $user = Auth::user();
+        
+        $data = [
+            'trendingProperties' => $this->recommendationService->getTrendingProperties(8),
+            'newListings' => $this->getNewListings(),
+        ];
+
+        if ($user) {
+            $data['personalizedRecommendations'] = $this->recommendationService->getRecommendationsForUser($user, 8);
+            $data['recentlyViewed'] = $this->recommendationService->getRecentlyViewedProperties($user, 4);
         } else {
-            $personalizedRecommendations = collect();
-            $recentlyViewed = collect();
+            $data['personalizedRecommendations'] = collect();
+            $data['recentlyViewed'] = collect();
         }
-        
-        // Get trending properties for all users
-        $trendingProperties = $this->recommendationService->getTrendingProperties(8);
-        
-        // Get new listings
-        $newListings = Property::where('status', 'active')
-            ->orderBy('created_at', 'desc')
-            ->take(8)
-            ->get();
-            
-        return view('recommendations.index', compact(
-            'personalizedRecommendations',
-            'trendingProperties',
-            'newListings',
-            'recentlyViewed'
-        ));
+
+        return view('recommendations.index', $data);
     }
 
     /**
-     * Display similar properties to a specific property.
+     * Affiche les propriétés similaires
      */
-    public function similarProperties(Property $property)
+    public function similarProperties(Property $property): View
     {
         $similarProperties = $this->recommendationService->getSimilarProperties($property);
-        
-        return view('recommendations.similar', compact('property', 'similarProperties'));
+
+        return view('recommendations.similar', [
+            'property' => $property,
+            'similarProperties' => $similarProperties,
+        ]);
     }
 
     /**
-     * Show the form for editing user preferences.
+     * Affiche le formulaire de préférences
      */
-    public function editPreferences()
+    public function editPreferences(): View
     {
-        $preferences = UserPreference::firstOrNew(['user_id' => auth()->id()]);
-        
+        $preferences = UserPreference::firstOrCreate(
+            ['user_id' => Auth::id()],
+            $this->getDefaultPreferences()
+        );
+
         return view('recommendations.preferences', compact('preferences'));
     }
 
     /**
-     * Update user preferences.
+     * Met à jour les préférences utilisateur
      */
-    public function updatePreferences(Request $request)
+    public function updatePreferences(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $validated = $this->validatePreferences($request);
+
+        UserPreference::updateOrCreate(
+            ['user_id' => Auth::id()],
+            $this->formatPreferencesForStorage($validated)
+        );
+
+        return redirect()
+            ->route('recommendations.preferences')
+            ->with('success', 'Vos préférences ont été mises à jour avec succès.');
+    }
+
+    /**
+     * Enregistre une vue de propriété
+     */
+    public function recordView(Request $request, Property $property): JsonResponse
+    {
+        $this->recommendationService->recordPropertyView(
+            $property->id,
+            Auth::id(),
+            $request->session()->getId()
+        );
+
+        if (Auth::check()) {
+            $this->recommendationService->updateUserPreferencesFromBehavior(Auth::user());
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Récupère les nouvelles annonces
+     */
+    protected function getNewListings()
+    {
+        return Property::query()
+            ->where('status', 'active')
+            ->orderByDesc('created_at')
+            ->limit(8)
+            ->get();
+    }
+
+    /**
+     * Validation des préférences
+     */
+    protected function validatePreferences(Request $request): array
+    {
+        return $request->validate([
             'preferred_locations' => 'nullable|array',
-            'preferred_locations.*' => 'string',
+            'preferred_locations.*' => 'string|max:255',
             'preferred_property_types' => 'nullable|array',
             'preferred_property_types.*' => 'string|in:apartment,house,villa,land,commercial',
             'min_price' => 'nullable|numeric|min:0',
@@ -83,51 +132,45 @@ class RecommendationController extends Controller
             'min_bedrooms' => 'nullable|integer|min:0',
             'min_bathrooms' => 'nullable|integer|min:0',
             'min_surface' => 'nullable|numeric|min:0',
-            'has_garden' => 'boolean',
-            'has_balcony' => 'boolean',
-            'has_parking' => 'boolean',
-            'has_elevator' => 'boolean',
+            'features' => 'nullable|array',
             'preferred_amenities' => 'nullable|array',
-            'preferred_amenities.*' => 'string',
+            'preferred_amenities.*' => 'string|max:255',
         ]);
-        
-        UserPreference::updateOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'preferred_locations' => $request->input('preferred_locations'),
-                'preferred_property_types' => $request->input('preferred_property_types'),
-                'min_price' => $request->input('min_price'),
-                'max_price' => $request->input('max_price'),
-                'min_bedrooms' => $request->input('min_bedrooms'),
-                'min_bathrooms' => $request->input('min_bathrooms'),
-                'min_surface' => $request->input('min_surface'),
-                'has_garden' => $request->boolean('has_garden'),
-                'has_balcony' => $request->boolean('has_balcony'),
-                'has_parking' => $request->boolean('has_parking'),
-                'has_elevator' => $request->boolean('has_elevator'),
-                'preferred_amenities' => $request->input('preferred_amenities'),
-            ]
-        );
-        
-        return redirect()->route('recommendations.preferences')
-            ->with('success', 'Vos préférences ont été mises à jour avec succès.');
     }
 
     /**
-     * Record a property view.
+     * Formatage des préférences pour le stockage
      */
-    public function recordView(Request $request, Property $property)
+    protected function formatPreferencesForStorage(array $validated): array
     {
-        $userId = auth()->id();
-        $sessionId = $request->session()->getId();
-        
-        $this->recommendationService->recordPropertyView($property->id, $userId, $sessionId);
-        
-        // Update user preferences if authenticated
-        if ($userId) {
-            $this->recommendationService->updateUserPreferencesFromBehavior(auth()->user());
-        }
-        
-        return response()->json(['success' => true]);
+        return [
+            'preferred_locations' => $validated['preferred_locations'] ?? null,
+            'preferred_property_types' => $validated['preferred_property_types'] ?? null,
+            'min_price' => $validated['min_price'] ?? null,
+            'max_price' => $validated['max_price'] ?? null,
+            'min_bedrooms' => $validated['min_bedrooms'] ?? null,
+            'min_bathrooms' => $validated['min_bathrooms'] ?? null,
+            'min_surface' => $validated['min_surface'] ?? null,
+            'features' => $validated['features'] ?? null,
+            'preferred_amenities' => $validated['preferred_amenities'] ?? null,
+        ];
+    }
+
+    /**
+     * Valeurs par défaut des préférences
+     */
+    protected function getDefaultPreferences(): array
+    {
+        return [
+            'preferred_locations' => [],
+            'preferred_property_types' => ['apartment', 'house'],
+            'min_price' => null,
+            'max_price' => null,
+            'min_bedrooms' => 1,
+            'min_bathrooms' => 1,
+            'min_surface' => null,
+            'features' => [],
+            'preferred_amenities' => [],
+        ];
     }
 }

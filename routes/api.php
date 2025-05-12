@@ -2,14 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\PropertyController;
 use App\Http\Controllers\User\LeadController;
 use App\Http\Controllers\User\AgencyController;
 use App\Http\Controllers\User\AgentController;
 use App\Http\Controllers\User\PropertyVisitController;
 use App\Http\Controllers\User\UserController;
-use App\Http\Controllers\User\CompanyController;
+
 use App\Http\Controllers\User\NotificationController;
 
 /*
@@ -24,13 +23,9 @@ use App\Http\Controllers\User\NotificationController;
 */
 
 // Routes publiques
-Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
-Route::get('/verify/{token}', [AuthController::class, 'verifyAccount'])->name('verify.account');
-Route::post('/resend-verification', [AuthController::class, 'resendVerification'])->name('verification.resend');
+
+
+
 
 // Routes de recherche publiques
 Route::get('/properties', [PropertyController::class, 'index']);
@@ -48,8 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     
-    // Déconnexion
-    Route::post('/logout', [AuthController::class, 'logout']);
+    
     
     // Profil utilisateur
     Route::get('/profile', [UserController::class, 'profile']);
@@ -76,7 +70,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Routes pour les utilisateurs avec rôle agent ou supérieur
     Route::middleware(['role:agent,agency_admin,admin,super_admin'])->group(function () {
         // Gestion des propriétés
-        Route::apiResource('properties', PropertyController::class)->except(['index', 'show']);
         
         // Gestion des leads
         Route::apiResource('leads', LeadController::class);
@@ -105,19 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/agencies/{agency}/agents/{user}', [AgencyController::class, 'updateAgent']);
         Route::delete('/agencies/{agency}/agents/{user}', [AgencyController::class, 'removeAgent']);
         
-        // Gestion des entreprises
-        Route::apiResource('companies', CompanyController::class);
-        Route::get('/companies/{company}/users', [CompanyController::class, 'users']);
-        Route::get('/companies/{company}/agencies', [CompanyController::class, 'agencies']);
-        Route::get('/companies/{company}/modules', [CompanyController::class, 'modules']);
-        Route::post('/companies/{company}/users', [CompanyController::class, 'addUser']);
-        Route::put('/companies/{company}/users/{user}', [CompanyController::class, 'updateUser']);
-        Route::delete('/companies/{company}/users/{user}', [CompanyController::class, 'removeUser']);
-        Route::post('/companies/{company}/modules', [CompanyController::class, 'addModule']);
-        Route::put('/companies/{company}/modules/{module}', [CompanyController::class, 'updateModule']);
-        Route::delete('/companies/{company}/modules/{module}', [CompanyController::class, 'removeModule']);
-        Route::post('/companies/{company}/approve', [CompanyController::class, 'approve']);
-        Route::post('/companies/{company}/reject', [CompanyController::class, 'reject']);
+    
     });
     
     // Routes pour les utilisateurs avec rôle super admin

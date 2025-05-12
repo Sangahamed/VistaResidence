@@ -17,21 +17,14 @@ class UserPreference extends Model
         'max_price',
         'min_bedrooms',
         'min_bathrooms',
-        'min_surface',
-        'has_garden',
-        'has_balcony',
-        'has_parking',
-        'has_elevator',
+        'features',
         'preferred_amenities',
     ];
 
     protected $casts = [
         'preferred_locations' => 'array',
         'preferred_property_types' => 'array',
-        'has_garden' => 'boolean',
-        'has_balcony' => 'boolean',
-        'has_parking' => 'boolean',
-        'has_elevator' => 'boolean',
+        'features' => 'array',
         'preferred_amenities' => 'array',
     ];
 

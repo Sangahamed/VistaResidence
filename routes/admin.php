@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CompanyApprovalController;
 
 
 
@@ -18,10 +19,20 @@ Route::prefix('admin')->name('admin.')->group(function(){
         // Route::post('/reset-password-handler',[AdminController::class,'resetPasswordHandler'])->name('reset-password-handler');
     });
 
-    Route::middleware(['auth:admin','prevent.back.history','twofactor.verified'])->group(function(){
 
-        Route::view('/Home','back.admin.home')->name('home');
+
+    Route::middleware(['prevent.back.history'])->group(function(){
+
+        Route::view('/Home','back.admin.home')->name('admin.home');
         Route::post('/logout_handler',[AdminController::class,'logoutHandler'])->name('logout_handler');
+        Route::get('/companies/pending', [CompanyApprovalController::class, 'pending'])
+        ->name('companies.pending');
+        
+    Route::post('/companies/{company}/approve', [CompanyApprovalController::class, 'approve'])
+        ->name('companies.approve');
+        
+    Route::post('/companies/{company}/reject', [CompanyApprovalController::class, 'reject'])
+        ->name('companies.reject');
     //     Route::get('/Profile',[AdminController::class,'profileView'])->name('profile');
     //     Route::post('/Change-profile-picture',[AdminController::class,'changeProfilePicture'])->name('change-profile-picture');
     //     Route::view('/Reglages','back.pages.admin.settings')->name('settings');

@@ -26,7 +26,7 @@ class PropertyMessageController extends Controller
         $recipient = $property->user;
         
         // Si la propriété appartient à une entreprise, trouver un agent de cette entreprise
-        if ($property->company_id) {
+         if ($property->company_id) {
             $company = Company::find($property->company_id);
             if ($company) {
                 // Trouver un agent de l'entreprise (premier utilisateur trouvé)
@@ -39,19 +39,16 @@ class PropertyMessageController extends Controller
         
         // Vérifier que le destinataire existe
         if (!$recipient) {
-            return redirect()->back()->with('error', 'Impossible de trouver un destinataire pour cette propriété.');
+            return redirect()->back()->with('error', '⚠ Aucun destinataire trouvé pour cette propriété.');
         }
         
         // Vérifier que l'utilisateur n'essaie pas de s'envoyer un message à lui-même
         if ($recipient->id === Auth::id()) {
-            return redirect()->back()->with('error', 'Vous ne pouvez pas vous envoyer un message à vous-même.');
+            return redirect()->back()->with('error', '❌ Vous ne pouvez pas vous envoyer un message à vous-même.');
         }
         
-        // Créer ou récupérer la conversation
-        $conversation = Chatify::getConversation([
-            'from_id' => Auth::id(),
-            'to_id' => $recipient->id,
-        ]);
+        // Utiliser la méthode correcte de Chatify pour obtenir ou créer une conversation
+        $conversation = Chatify::getConversationWith($recipient->id);
         
         // Préparer le message initial concernant la propriété
         $messageText = "Bonjour, je suis intéressé(e) par votre propriété : " . $property->title . " (" . $property->reference . ").";
@@ -61,20 +58,17 @@ class PropertyMessageController extends Controller
             $messageText .= "\n\n" . $request->message;
         }
         
-        // Envoyer le message initial si c'est une nouvelle conversation
-        if (!$conversation) {
-            Chatify::newMessage([
-                'from_id' => Auth::id(),
-                'to_id' => $recipient->id,
-                'body' => $messageText,
-            ]);
-        }
+        // Envoyer le message initial
+        Chatify::sendMessage([
+            'from_id' => Auth::id(),
+            'to_id' => $recipient->id,
+            'message' => $messageText,
+            'attachment' => null,
+        ]);
         
         // Rediriger vers la conversation
-        return redirect()->route('chatify')->with([
-            'message' => 'Conversation initiée avec succès.',
-            'type' => 'success',
-            'user_id' => $recipient->id
+        return redirect()->route('messenger')->with([
+            'id' => $recipient->id, // Chatify utilise 'id' pour ouvrir une conversation spécifique
         ]);
     }
     
@@ -86,35 +80,11 @@ class PropertyMessageController extends Controller
         // Récupérer tous les utilisateurs qui sont des agents immobiliers ou des entreprises
         $agents = User::where('account_type', 'company')
             ->orWhereHas('roles', function($query) {
-                $query->where('slug', 'like', 'agent-%');
+                $query->where('name', 'like', 'agent%');
             })
+            ->with('roles')
             ->get();
         
         return view('messages.agents', compact('agents'));
-    }
-    
-    /**
-     * Afficher les conversations liées aux propriétés.
-     */
-    public function propertyConversations()
-    {
-        $user = Auth::user();
-        
-        // Si l'utilisateur est un client, récupérer ses conversations avec des agents
-        if ($user->account_type === 'client') {
-            $conversations = Chatify::getConversations([
-                'from_id' => $user->id,
-                'type' => 'user',
-            ]);
-        } 
-        // Si l'utilisateur est un agent ou une entreprise, récupérer ses conversations avec des clients
-        else {
-            $conversations = Chatify::getConversations([
-                'to_id' => $user->id,
-                'type' => 'user',
-            ]);
-        }
-        
-        return view('messages.property-conversations', compact('conversations'));
     }
 }

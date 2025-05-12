@@ -1,7 +1,7 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto py-8 px-4">
+<main class="container mx-auto py-8 px-4">
     <div class="flex flex-col gap-6">
         <div>
             <a href="{{ route('auctions.index') }}" class="text-primary hover:underline mb-2 inline-block">
@@ -458,7 +458,7 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 @endsection
 
 @section('scripts')

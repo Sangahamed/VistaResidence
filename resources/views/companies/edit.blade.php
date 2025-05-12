@@ -1,9 +1,9 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('title', 'Modifier ' . $company->name)
 
 @section('content')
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <main class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900">Modifier l'entreprise</h3>
             <p class="mt-1 max-w-2xl text-sm text-gray-500">Modifiez les informations de l'entreprise.</p>
@@ -22,14 +22,6 @@
                             @enderror
                         </div>
 
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="industry" class="block text-sm font-medium text-gray-700">Secteur d'activité</label>
-                            <input type="text" name="industry" id="industry" value="{{ old('industry', $company->industry) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            @error('industry')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="col-span-6">
                             <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                             <textarea id="description" name="description" rows="3" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('description', $company->description) }}</textarea>
@@ -38,26 +30,19 @@
                             @enderror
                         </div>
 
+
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_name" class="block text-sm font-medium text-gray-700">Nom du contact</label>
-                            <input type="text" name="contact_name" id="contact_name" value="{{ old('contact_name', $company->contact_name) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                            @error('contact_name')
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email du contact</label>
+                            <input type="email" name="email" id="email" value="{{ old('email', $company->email) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                            @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_email" class="block text-sm font-medium text-gray-700">Email du contact</label>
-                            <input type="email" name="contact_email" id="contact_email" value="{{ old('contact_email', $company->contact_email) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                            @error('contact_email')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="contact_phone" class="block text-sm font-medium text-gray-700">Téléphone du contact</label>
-                            <input type="text" name="contact_phone" id="contact_phone" value="{{ old('contact_phone', $company->contact_phone) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                            @error('contact_phone')
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Téléphone du contact</label>
+                            <input type="text" name="phone" id="phone" value="{{ old('phone', $company->phone) }}" class="mt-1 focus:ring-rose-500 focus:border-rose-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            @error('phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -154,5 +139,5 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 @endsection

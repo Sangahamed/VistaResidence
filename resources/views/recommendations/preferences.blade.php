@@ -1,227 +1,241 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto py-8 px-4">
-    <div class="flex flex-col gap-6">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight">Mes préférences</h1>
-            <p class="text-muted-foreground">
-                Personnalisez vos préférences pour recevoir des recommandations adaptées à vos besoins.
-            </p>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Vos préférences immobilières</h1>
+                <p class="text-gray-600 mt-2">Personnalisez vos recommandations selon vos critères</p>
+            </div>
+            <a href="{{ route('recommendations.index') }}" 
+               class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour aux recommandations
+            </a>
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="p-6">
-                <form action="{{ route('recommendations.preferences.update') }}" method="POST">
-                    @csrf
-                    
-                    <div class="space-y-8">
-                        <div>
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Localisation</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="preferred_locations" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Villes ou codes postaux préférés
-                                    </label>
-                                    <select id="preferred_locations" name="preferred_locations[]" multiple
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                                        @foreach(['Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Lille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier'] as $city)
-                                            <option value="{{ $city }}" {{ $preferences->preferred_locations && in_array($city, $preferences->preferred_locations) ? 'selected' : '' }}>
-                                                {{ $city }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <p class="mt-1 text-xs text-gray-500">
-                                        Vous pouvez sélectionner plusieurs villes (Ctrl+clic ou Cmd+clic).
-                                    </p>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <form action="{{ route('recommendations.update') }}" method="POST" class="p-6">
+                @csrf
+                @method('PUT')
+
+                <div class="space-y-8 divide-y divide-gray-200">
+                    <!-- Section Type de bien -->
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Type de propriété</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            @foreach(['apartment' => 'Appartement', 'house' => 'Maison', 'villa' => 'Villa', 'land' => 'Terrain', 'commercial' => 'Commercial'] as $value => $label)
+                                <div class="flex items-center">
+                                    <input id="type-{{ $value }}" name="preferred_property_types[]" type="checkbox" 
+                                           value="{{ $value }}" 
+                                           {{ in_array($value, old('preferred_property_types', $preferences->preferred_property_types ?? [])) ? 'checked' : '' }}
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="type-{{ $value }}" class="ml-3 block text-sm font-medium text-gray-700">{{ $label }}</label>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                        
-                        <div class="pt-6 border-t border-gray-200">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Type de bien</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="preferred_property_types" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Types de biens préférés
-                                    </label>
-                                    <div class="space-y-2">
-                                        @foreach(['apartment' => 'Appartement', 'house' => 'Maison', 'villa' => 'Villa', 'land' => 'Terrain', 'commercial' => 'Commercial'] as $value => $label)
-                                            <div class="flex items-center">
-                                                <input type="checkbox" id="property_type_{{ $value }}" name="preferred_property_types[]" value="{{ $value }}"
-                                                    {{ $preferences->preferred_property_types && in_array($value, $preferences->preferred_property_types) ? 'checked' : '' }}
-                                                    class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                                <label for="property_type_{{ $value }}" class="ml-2 text-sm text-gray-700">
-                                                    {{ $label }}
-                                                </label>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-6 border-t border-gray-200">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Budget</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="min_price" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Prix minimum
-                                    </label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="number" name="min_price" id="min_price" 
-                                            value="{{ $preferences->min_price }}"
-                                            class="focus:ring-primary focus:border-primary block w-full pr-12 sm:text-sm border-gray-300 rounded-md">
-                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-500 sm:text-sm">€</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label for="max_price" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Prix maximum
-                                    </label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="number" name="max_price" id="max_price" 
-                                            value="{{ $preferences->max_price }}"
-                                            class="focus:ring-primary focus:border-primary block w-full pr-12 sm:text-sm border-gray-300 rounded-md">
-                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                            <span class="text-gray-500 sm:text-sm">€</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-6 border-t border-gray-200">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Caractéristiques</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div>
-                                    <label for="min_bedrooms" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Chambres (min)
-                                    </label>
-                                    <select id="min_bedrooms" name="min_bedrooms"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                                        <option value="">Indifférent</option>
-                                        @foreach(range(1, 5) as $num)
-                                            <option value="{{ $num }}" {{ $preferences->min_bedrooms == $num ? 'selected' : '' }}>
-                                                {{ $num }}+
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label for="min_bathrooms" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Salles de bain (min)
-                                    </label>
-                                    <select id="min_bathrooms" name="min_bathrooms"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                                        <option value="">Indifférent</option>
-                                        @foreach(range(1, 3) as $num)
-                                            <option value="{{ $num }}" {{ $preferences->min_bathrooms == $num ? 'selected' : '' }}>
-                                                {{ $num }}+
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label for="min_surface" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Surface minimale (m²)
-                                    </label>
-                                    <input type="number" name="min_surface" id="min_surface" 
-                                        value="{{ $preferences->min_surface }}"
-                                        class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-6 border-t border-gray-200">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Équipements</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="has_garden" name="has_garden" type="checkbox" value="1" 
-                                                {{ $preferences->has_garden ? 'checked' : '' }}
-                                                class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="has_garden" class="font-medium text-gray-700">Jardin</label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="has_balcony" name="has_balcony" type="checkbox" value="1" 
-                                                {{ $preferences->has_balcony ? 'checked' : '' }}
-                                                class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="has_balcony" class="font-medium text-gray-700">Balcon/Terrasse</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="space-y-4">
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="has_parking" name="has_parking" type="checkbox" value="1" 
-                                                {{ $preferences->has_parking ? 'checked' : '' }}
-                                                class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="has_parking" class="font-medium text-gray-700">Parking/Garage</label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-start">
-                                        <div class="flex items-center h-5">
-                                            <input id="has_elevator" name="has_elevator" type="checkbox" value="1" 
-                                                {{ $preferences->has_elevator ? 'checked' : '' }}
-                                                class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <label for="has_elevator" class="font-medium text-gray-700">Ascenseur</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-6 border-t border-gray-200">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Autres préférences</h2>
+                    </div>
+
+                    <!-- Section Budget -->
+                    <div class="pt-8 space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Budget</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="preferred_amenities" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Équipements supplémentaires
-                                </label>
-                                <select id="preferred_amenities" name="preferred_amenities[]" multiple
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                                    @foreach(['pool' => 'Piscine', 'gym' => 'Salle de sport', 'security' => 'Sécurité', 'air_conditioning' => 'Climatisation', 'fireplace' => 'Cheminée'] as $value => $label)
-                                        <option value="{{ $value }}" {{ $preferences->preferred_amenities && in_array($value, $preferences->preferred_amenities) ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <p class="mt-1 text-xs text-gray-500">
-                                    Vous pouvez sélectionner plusieurs équipements (Ctrl+clic ou Cmd+clic).
-                                </p>
+                                <label for="min_price" class="block text-sm font-medium text-gray-700">Prix minimum (€)</label>
+                                <input type="number" id="min_price" name="min_price" 
+                                       value="{{ old('min_price', $preferences->min_price) }}"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="max_price" class="block text-sm font-medium text-gray-700">Prix maximum (€)</label>
+                                <input type="number" id="max_price" name="max_price" 
+                                       value="{{ old('max_price', $preferences->max_price) }}"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="pt-6 border-t border-gray-200 mt-8">
-                        <div class="flex justify-end">
-                            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                Enregistrer mes préférences
-                            </button>
+
+                    <!-- Section Caractéristiques -->
+                    <div class="pt-8 space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Caractéristiques</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="min_bedrooms" class="block text-sm font-medium text-gray-700">Nombre minimum de chambres</label>
+                                <select id="min_bedrooms" name="min_bedrooms" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Peu importe</option>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <option value="{{ $i }}" {{ old('min_bedrooms', $preferences->min_bedrooms) == $i ? 'selected' : '' }}>{{ $i }}+</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div>
+                                <label for="min_bathrooms" class="block text-sm font-medium text-gray-700">Nombre minimum de salles de bain</label>
+                                <select id="min_bathrooms" name="min_bathrooms" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Peu importe</option>
+                                    @for($i = 1; $i <= 3; $i++)
+                                        <option value="{{ $i }}" {{ old('min_bathrooms', $preferences->min_bathrooms) == $i ? 'selected' : '' }}>{{ $i }}+</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div>
+                                <label for="min_surface" class="block text-sm font-medium text-gray-700">Surface minimum (m²)</label>
+                                <input type="number" id="min_surface" name="min_surface" 
+                                       value="{{ old('min_surface', $preferences->min_surface) }}"
+                                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
                         </div>
                     </div>
-                </form>
-            </div>
+
+                    <!-- Section Équipements -->
+                    <div class="pt-8 space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Équipements souhaités</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @php
+                                            $features = [
+                                                'garage' => 'Garage',
+                                                'parking' => 'Parking',
+                                                'garden' => 'Jardin',
+                                                'terrace' => 'Terrasse',
+                                                'Wifi' => 'Wi-Fi',
+                                                'balcony' => 'Balcon',
+                                                'pool' => 'Piscine',
+                                                'elevator' => 'Ascenseur',
+                                                'air_conditioning' => 'Climatisation',
+                                                'heating' => 'Chauffage',
+                                                'security_system' => 'Système de sécurité',
+                                                'storage' => 'Espace de stockage',
+                                                'Salle de sport' => 'Salle de sport',
+                                                'Salle de jeux' => 'Salle de jeux',
+                                                'Salle de réunion' => 'Salle de réunion',
+                                                'Salle de conférence' => 'Salle de conférence',
+                                                'Restaurant' => 'Restaurant',
+                                                'furnished' => 'Meublé',
+                                            ];
+                                            $oldFeatures = old('features', []);
+                                        @endphp
+                            @foreach($features as $key => $feature)
+                                <div class="flex items-center">
+                                    <input id="feature-{{ $key }}" name="features[]" type="checkbox" 
+                                           value="{{ $key }}"
+                                           {{ in_array($key, $oldFeatures) ? 'checked' : '' }}
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="feature-{{ $key }}" class="ml-3 block text-sm font-medium text-gray-700">
+                                        <div class="flex items-center">
+                                            
+                                            {{ $feature }}
+                                        </div>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Section Localisation -->
+                    <div class="pt-8 space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Localisation préférée</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="location-input" class="block text-sm font-medium text-gray-700">Villes ou quartiers</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <input type="text" id="location-input" 
+                                           class="flex-1 block w-full rounded-none rounded-l-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 border"
+                                           placeholder="Ajouter une ville ou un quartier">
+                                    <button type="button" id="add-location" 
+                                            class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                        Ajouter
+                                    </button>
+                                </div>
+                                <div id="locations-container" class="mt-2 space-y-2">
+                                    @foreach(old('preferred_locations', $preferences->preferred_locations ?? []) as $location)
+                                        @if($location)
+                                            <div class="flex items-center bg-gray-50 rounded-md p-2 location-tag">
+                                                <input type="hidden" name="preferred_locations[]" value="{{ $location }}">
+                                                <span class="flex-1 text-sm">{{ $location }}</span>
+                                                <button type="button" class="text-red-500 hover:text-red-700 remove-location">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 flex justify-end">
+                    <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Annuler
+                    </button>
+                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Enregistrer les préférences
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des localisations
+        const locationInput = document.getElementById('location-input');
+        const addLocationBtn = document.getElementById('add-location');
+        const locationsContainer = document.getElementById('locations-container');
+
+        function addLocation(value) {
+            if (!value.trim()) return;
+            
+            const div = document.createElement('div');
+            div.className = 'flex items-center bg-gray-50 rounded-md p-2 location-tag';
+            div.innerHTML = `
+                <input type="hidden" name="preferred_locations[]" value="${value.trim()}">
+                <span class="flex-1 text-sm">${value.trim()}</span>
+                <button type="button" class="text-red-500 hover:text-red-700 remove-location">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            locationsContainer.appendChild(div);
+            locationInput.value = '';
+        }
+
+        addLocationBtn.addEventListener('click', () => addLocation(locationInput.value));
+        locationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addLocation(locationInput.value);
+            }
+        });
+
+        // Délégation d'événement pour la suppression
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-location') || 
+                e.target.closest('.remove-location')) {
+                e.target.closest('.location-tag').remove();
+            }
+        });
+
+        // Validation des prix
+        const minPrice = document.getElementById('min_price');
+        const maxPrice = document.getElementById('max_price');
+
+        [minPrice, maxPrice].forEach(input => {
+            input.addEventListener('change', function() {
+                if (minPrice.value && maxPrice.value && parseFloat(minPrice.value) > parseFloat(maxPrice.value)) {
+                    alert('Le prix minimum ne peut pas être supérieur au prix maximum');
+                    this.value = '';
+                }
+            });
+        });
+    });
+</script>
+@endpush
 @endsection

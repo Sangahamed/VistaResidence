@@ -32,25 +32,19 @@
         </x-property.form-section>
 
         {{-- Localisation --}}
-        <x-property.form-section title="Localisation">
-            <x-property.input name="address" label="Adresse" :value="$value('address')" />
-            <div class="row">
-                <x-property.input name="city" label="Ville" class="col-md-6" :value="$value('city')" />
-                <x-property.input name="postal_code" label="Code postal" class="col-md-6" :value="$value('postal_code')" />
-            </div>
-            <x-property.input name="country" label="Pays" :value="$value('country', 'France')" />
-
-            <div class="row">
-                <x-property.input name="latitude" label="Latitude" type="number" step="0.000001" class="col-md-6" :value="$value('latitude')" />
-                <x-property.input name="longitude" label="Longitude" type="number" step="0.000001" class="col-md-6" :value="$value('longitude')" />
-            </div>
-
-            <button type="button" class="btn btn-outline-primary" id="findCoordinates">
-                <i class="fas fa-map-marker-alt"></i> Trouver les coordonnées
-            </button>
-
-            <div id="map" style="height: 300px; display: none;" class="mb-3 rounded"></div>
-        </x-property.form-section>
+        <div class="mb-6">
+            <h3 class="text-lg font-medium mb-2">Localisation</h3>
+            
+            @livewire('address-autocomplete', [
+                'address' => $property->address ?? '',
+                'street' => $property->street ?? '',
+                'city' => $property->city ?? '',
+                'postalCode' => $property->postal_code ?? '',
+                'country' => $property->country ?? '',
+                'latitude' => $property->latitude ?? null,
+                'longitude' => $property->longitude ?? null,
+            ])
+        </div>
 
         {{-- Caractéristiques --}}
         <x-property.form-section title="Caractéristiques">

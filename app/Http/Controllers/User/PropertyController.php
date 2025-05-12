@@ -10,38 +10,27 @@ use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
+    
 
     public function index()
     {
-        $user = auth()->user();
-
-        if ($user->account_type === 'company') {
-            // Entreprise : afficher ses propriétés ou celles de ses agents
-            $properties = Property::where('company_id', $user->company_id)
-                ->orWhere('owner_id', $user->id)
-                ->latest()
-                ->paginate(10);
-        } else {
-            // Particulier : afficher ses propres propriétés
-            $properties = Property::where('owner_id', $user->id)
-                ->latest()
-                ->paginate(10);
-        }
+        $properties = Property::where('owner_id', auth()->id())
+            ->latest()
+            ->paginate(10);
 
         return view('properties.index', compact('properties'));
     }
 
     public function create()
     {
+        // $this->authorize('create', $property);
         return view('properties.create');
     }
 
     public function store(Request $request)
     {
+        // $this->authorize('create', $property);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -76,19 +65,19 @@ class PropertyController extends Controller
 
     public function show(Property $property)
     {
-        $this->authorizeAccess($property);
+        // $this->authorizeAccess($property);
         return view('properties.show', compact('property'));
     }
 
     public function edit(Property $property)
     {
-        $this->authorizeAccess($property);
+        // $this->authorizeAccess($property);
         return view('properties.edit', compact('property'));
     }
 
     public function update(Request $request, Property $property)
     {
-        $this->authorizeAccess($property);
+        // $this->authorize('update', $property);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -173,7 +162,7 @@ class PropertyController extends Controller
 
     public function destroy(Property $property)
     {
-        $this->authorizeAccess($property);
+        // $this->authorize('delete', $property);
 
         // Suppression des fichiers gérée ailleurs ou dans un event/model observer
         $property->delete();
@@ -184,45 +173,31 @@ class PropertyController extends Controller
 
     public function editMedia(Property $property)
     {
-        $this->authorizeAccess($property);
+        // $this->authorizeAccess($property);
         return view('properties.media', compact('property'));
     }
 
-    public function authorizeAccess(Property $property)
+    private function authorizeAccess(Property $property)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        // Vérification des rôles pour les entreprises
-        if ($user->isCompanyAdmin()) {
-            if ($property->company_id !== $user->companies->first()->id) {
-                abort(403, 'Accès interdit.');
-            }
-        } elseif ($user->isAgent()) {
-            if ($property->company_id !== $user->companies->first()->id) {
-                abort(403, 'Accès interdit.');
-            }
-        } elseif ($user->account_type === 'individual') {
-            if ($property->owner_id !== $user->id) {
-                abort(403, 'Accès interdit.');
-            }
-        } else {
-            abort(403, 'Accès interdit.');
-        }
-    }
-
-    /**
-     * Ajoute ou retire une propriété des favoris de l'utilisateur.
-     */
-    public function toggleFavorite(Property $property)
-    {
-        $user = auth()->user();
-
-        if ($user->favorites()->where('property_id', $property->id)->exists()) {
-            $user->favorites()->detach($property->id);
-            return back()->with('success', 'Retiré des favoris.');
+        // Refuser l'accès si l'utilisateur n'est ni une entreprise ni un particulier
+        if (!$user->isCompany() && !$user->isIndividual()) {
+            abort(403, 'Accès non autorisé.');
         }
 
-        $user->favorites()->attach($property->id);
-        return back()->with('success', 'Ajouté aux favoris.');
+        // Si c'est un particulier, il doit être le propriétaire
+        if ($user->isIndividual() && $property->owner_id !== $user->id) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        // Si c'est une entreprise, elle peut accéder si elle est propriétaire OU si la propriété est liée à sa société
+        if ($user->isCompany()) {
+            $userCompanyId = $user->companies->first()->id ?? null;
+
+            if ($property->owner_id !== $user->id && $property->company_id !== $userCompanyId) {
+                abort(403, 'Accès non autorisé.');
+            }
+        }
     }
 }

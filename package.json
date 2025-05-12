@@ -25,6 +25,7 @@
         "chart.js": "^4.4.9",
         "frappe-gantt": "^1.0.3",
         "sortablejs": "^1.15.6",
-        "swiper": "^11.1.14"
+        "swiper": "^11.1.14",
+        "tailwindcss-animate": "^1.0.7"
     }
 }

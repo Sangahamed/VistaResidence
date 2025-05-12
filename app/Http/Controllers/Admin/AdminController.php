@@ -23,83 +23,83 @@ use Toastr;
 class AdminController extends Controller
 {
     public function loginHandler(Request $request)
-{
-    // Détecter si l'entrée est un email ou un nom d'utilisateur
-    $fieldType = filter_var($request->login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+    {
+        // Détecter si l'entrée est un email ou un nom d'utilisateur
+        $fieldType = filter_var($request->login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-    // Validation des données selon le type
-    $rules = [
-        'login_id' => [
-            'required',
-            $fieldType === 'email' ? 'email' : 'string',
-            "exists:admins,{$fieldType}",
-        ],
-        'password' => 'required|min:5|max:45',
-    ];
-    $messages = [
-        'login_id.required' => 'L\'email ou le nom d\'utilisateur est requis',
-        'login_id.email' => 'Adresse email invalide',
-        'login_id.exists' => 'Les identifiants ne correspondent pas',
-        'password.required' => 'Le mot de passe est requis',
-    ];
-    $request->validate($rules, $messages);
+        // Validation des données selon le type
+        $rules = [
+            'login_id' => [
+                'required',
+                $fieldType === 'email' ? 'email' : 'string',
+                "exists:admins,{$fieldType}",
+            ],
+            'password' => 'required|min:5|max:45',
+        ];
+        $messages = [
+            'login_id.required' => 'L\'email ou le nom d\'utilisateur est requis',
+            'login_id.email' => 'Adresse email invalide',
+            'login_id.exists' => 'Les identifiants ne correspondent pas',
+            'password.required' => 'Le mot de passe est requis',
+        ];
+        $request->validate($rules, $messages);
 
-    // Préparer les identifiants
-    $credentials = [
-        $fieldType => $request->login_id,
-        'password' => $request->password,
-    ];
+        // Préparer les identifiants
+        $credentials = [
+            $fieldType => $request->login_id,
+            'password' => $request->password,
+        ];
 
-    // Tentative de connexion via le guard admin
-    if (Auth::guard('admin')->attempt($credentials)) {
-        $user = Auth::guard('admin')->user();
-        $currentDeviceInfo = $this->getCurrentDeviceInfo();
+        // Tentative de connexion via le guard admin
+        if (Auth::guard('admin')->attempt($credentials)) {
+            $user = Auth::guard('admin')->user();
+            $currentDeviceInfo = $this->getCurrentDeviceInfo();
 
-        // Vérifier si c'est un nouvel appareil
-        if ($this->isNewDevice($user, $currentDeviceInfo)) {
-            Log::info('Connexion depuis un nouvel appareil détectée.', [
+            // Vérifier si c'est un nouvel appareil
+            if ($this->isNewDevice($user, $currentDeviceInfo)) {
+                Log::info('Connexion depuis un nouvel appareil détectée.', [
+                    'email' => $user->email,
+                    'ip' => $request->ip(),
+                    'device_info' => $currentDeviceInfo,
+                ]);
+
+                $this->sendTwoFactorCode($user);
+                session([
+                    'temp_user_id' => $user->id,
+                    'current_device_info' => $currentDeviceInfo,
+                ]);
+
+                return redirect()->route('admin.two-factor.show');
+            }
+
+            // Connexion réussie depuis un appareil déjà connu
+            $this->updateUserLoginInfo($user, $currentDeviceInfo);
+            $this->resetLoginAttempts($user);
+            session()->regenerate(); // Sécuriser la session
+
+            Log::info('Connexion réussie.', [
                 'email' => $user->email,
                 'ip' => $request->ip(),
-                'device_info' => $currentDeviceInfo,
             ]);
 
-            $this->sendTwoFactorCode($user);
-            session([
-                'temp_user_id' => $user->id,
-                'current_device_info' => $currentDeviceInfo,
-            ]);
-
-            return redirect()->route('admin.two-factor.show');
+            return redirect()->route('admin.home');
         }
 
-        // Connexion réussie depuis un appareil déjà connu
-        $this->updateUserLoginInfo($user, $currentDeviceInfo);
-        $this->resetLoginAttempts($user);
-        session()->regenerate(); // Sécuriser la session
+        // Gestion des échecs de connexion avec limitation de tentative
+        $ip = $request->ip();
+        if (RateLimiter::tooManyAttempts($ip, 5)) {
+            Log::warning('Trop de tentatives de connexion.', ['ip' => $ip]);
+            return back()->with('fail', 'Trop de tentatives. Réessayez dans 1 minute.');
+        }
 
-        Log::info('Connexion réussie.', [
-            'email' => $user->email,
-            'ip' => $request->ip(),
+        RateLimiter::hit($ip, 60); // Limite des tentatives pendant 1 minute
+        Log::warning('Échec de connexion.', [
+            'email' => $request->login_id,
+            'ip' => $ip,
         ]);
 
-        return redirect()->route('admin.home');
+        return back()->with('fail', 'Identifiants invalides.');
     }
-
-    // Gestion des échecs de connexion avec limitation de tentative
-    $ip = $request->ip();
-    if (RateLimiter::tooManyAttempts($ip, 5)) {
-        Log::warning('Trop de tentatives de connexion.', ['ip' => $ip]);
-        return back()->with('fail', 'Trop de tentatives. Réessayez dans 1 minute.');
-    }
-
-    RateLimiter::hit($ip, 60); // Limite des tentatives pendant 1 minute
-    Log::warning('Échec de connexion.', [
-        'email' => $request->login_id,
-        'ip' => $ip,
-    ]);
-
-    return back()->with('fail', 'Identifiants invalides.');
-}
 
 
     private function getCurrentDeviceInfo()

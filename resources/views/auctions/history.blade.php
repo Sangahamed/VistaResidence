@@ -1,7 +1,7 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<main class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Auction History</h1>
         <a href="{{ route('auctions.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -71,7 +71,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($auctions as $auction)
+                @forelse($bids as $auction)
                 <tr>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <div class="flex items-center">
@@ -144,8 +144,8 @@
             </tbody>
         </table>
         <div class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
-            {{ $auctions->links() }}
+            {{ $bids->links() }}
         </div>
     </div>
-</div>
+</main>
 @endsection

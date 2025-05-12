@@ -21,7 +21,7 @@ use constDefaults;
 use Toastr;
 
 
-class UserController extends Controller
+class AuthController extends Controller
 
 {
 
@@ -188,10 +188,17 @@ class UserController extends Controller
    
     public function logout(Request $request)
     {
-        Auth::user->logout();
-        Log::info('Deconnection de .', ['name' => $request->name, 'user_id' => Auth::id(), 'ip' => request()->ip()]);
-        return redirect()->route('login')->with('fail', 'Vous etes deconnecter !');
+        Auth::logout(); // Correct method to log out the user
+
+        Log::info('Déconnexion de.', [
+            'name' => $request->user()->name ?? 'Inconnu',
+            'user_id' => Auth::id(),
+            'ip' => $request->ip()
+        ]);
+
+        return redirect()->route('login')->with('fail', 'Vous êtes déconnecté !');
     }
+
 
 
     // 8

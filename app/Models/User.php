@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Chatify\Facades\ChatifyMessenger as Chatify;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Chatify\Facades\ChatifyMessenger as Chatify;
 
 class User extends Authenticatable
 {
@@ -66,6 +66,10 @@ class User extends Authenticatable
         return $this->account_type === 'company';
     }
     
+    public function company()
+    {
+        return $this->hasOne(Company::class, 'owner_id');
+    }
 
     // ---------------------- Gestion du profil utilisateur ----------------------
 
@@ -189,10 +193,31 @@ class User extends Authenticatable
     /**
      * Relation avec une entreprise spécifique.
      */
-    public function company()
+
+        public function pendingCompany()
     {
-        return $this->belongsTo(Company::class);
+        return $this->hasOne(Company::class, 'owner_id')->where('status', 'pending');
     }
+
+    public function hasPendingCompany()
+    {
+        return $this->pendingCompany()->exists();
+    }
+
+    public function activeCompany()
+    {
+        return $this->hasOne(Company::class, 'owner_id')->where('status', 'approved');
+    }
+
+     
+     
+    
+
+   public function hasCompany()
+    {
+        return (bool) $this->company()->exists();
+    }
+
 
     /**
      * Relation avec plusieurs entreprises (Un utilisateur peut être membre de plusieurs entreprises).
@@ -215,7 +240,7 @@ class User extends Authenticatable
      */
     public function ownedCompanies()
     {
-        return $this->hasMany(Company::class, 'owner_id');
+        return $this->hasCompany() && $this->company->owner_id === $this->id;
     }
 
     /**

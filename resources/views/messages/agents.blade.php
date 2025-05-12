@@ -29,7 +29,7 @@
                         @endif
                         
                         @auth
-                            <a href="{{ route('chatify', ['user_id' => $agent->id]) }}" class="btn btn-primary mt-2">
+                            <a href="{{ route('messenger', ['id' => $agent->id]) }}" class="btn btn-primary mt-2">
                                 <i class="fas fa-comment me-2"></i>Contacter
                             </a>
                         @else

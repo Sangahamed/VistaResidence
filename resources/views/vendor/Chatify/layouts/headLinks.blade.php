@@ -3,7 +3,6 @@
 {{-- Meta tags --}}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="id" content="{{ $id }}">
-{{-- <meta name="type" content="{{ $type }}"> --}}
 <meta name="messenger-color" content="{{ $messengerColor }}">
 <meta name="messenger-theme" content="{{ $dark_mode }}">
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -25,49 +24,7 @@
 
 {{-- Setting messenger primary color to css --}}
 <style>
-  :root {
-      --primary-color: #2180f3;
-  }
-  
-  .messenger {
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .messenger-listView {
-      border-right: 1px solid #e5e7eb;
-  }
-  
-  .messenger-listView-tabs {
-      border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .messenger-listView .m-header .user-name {
-      font-weight: 600;
-  }
-  
-  .messenger-messagingView .m-header .user-name {
-      font-weight: 600;
-  }
-  
-  .messenger-infoView {
-      background-color: #f9fafb;
-      border-left: 1px solid #e5e7eb;
-  }
-  
-  .messenger-infoView .info-name {
-      font-weight: 600;
-  }
-  
-  .messenger-title {
-      font-weight: 600;
-  }
-  
-  .message-card .message {
-      border-radius: 1rem;
-  }
-  
-  .m-send {
-      border-top: 1px solid #e5e7eb;
-  }
+    :root {
+        --primary-color: {{ $messengerColor }};
+    }
 </style>

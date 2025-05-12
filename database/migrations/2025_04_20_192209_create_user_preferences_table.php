@@ -21,10 +21,7 @@ return new class extends Migration
             $table->integer('min_bedrooms')->nullable();
             $table->integer('min_bathrooms')->nullable();
             $table->integer('min_surface')->nullable();
-            $table->boolean('has_garden')->nullable();
-            $table->boolean('has_balcony')->nullable();
-            $table->boolean('has_parking')->nullable();
-            $table->boolean('has_elevator')->nullable();
+            $table->json('features')->nullable();
             $table->json('preferred_amenities')->nullable();
             $table->timestamps();
         });

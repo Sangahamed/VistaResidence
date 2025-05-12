@@ -16,10 +16,14 @@ class PropertyMediaManager extends Component
     public $newVideos = [];
     public $images = [];
     public $videos = [];
+    public $activeTab = 'images';
+    public $uploadInProgress = false;
+
+    protected $listeners = ['mediaUploaded' => 'handleMediaUploaded'];
 
     public function mount(Property $property)
     {
-        $this->property = $property;
+        $this->property = $property; // Charge les médias existants
         $this->images = $property->images ?? [];
         $this->videos = $property->videos ?? [];
     }
@@ -29,6 +33,9 @@ class PropertyMediaManager extends Component
         $this->validate([
             'newImages.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+        
+        // Sauvegarde automatique
+        $this->saveMedia('images');
     }
 
     public function updatedNewVideos()
@@ -36,33 +43,47 @@ class PropertyMediaManager extends Component
         $this->validate([
             'newVideos.*' => 'mimes:mp4,mov,avi|max:20480',
         ]);
+        
+        // Sauvegarde automatique
+        $this->saveMedia('videos');
     }
 
-    public function saveMedia()
+    public function saveMedia($type = null)
     {
-        foreach ($this->newImages as $image) {
-            $path = $image->store('properties/images', 'public');
-            $this->images[] = [
-                'filename' => basename($path),
-                'path' => $path,
-            ];
+        $this->uploadInProgress = true;
+        
+        try {
+            if (!$type || $type === 'images') {
+                foreach ($this->newImages as $image) {
+                    $path = $image->store('properties/images', 'public');
+                    $this->images[] = [
+                        'filename' => basename($path),
+                        'path' => $path,
+                    ];
+                }
+                $this->newImages = [];
+            }
+
+            if (!$type || $type === 'videos') {
+                foreach ($this->newVideos as $video) {
+                    $path = $video->store('properties/videos', 'public');
+                    $this->videos[] = [
+                        'filename' => basename($path),
+                        'path' => $path,
+                    ];
+                }
+                $this->newVideos = [];
+            }
+
+            $this->property->update([
+                'images' => $this->images,
+                'videos' => $this->videos,
+            ]);
+
+            $this->dispatch('mediaUploaded');
+        } finally {
+            $this->uploadInProgress = false;
         }
-
-        foreach ($this->newVideos as $video) {
-            $path = $video->store('properties/videos', 'public');
-            $this->videos[] = [
-                'filename' => basename($path),
-                'path' => $path,
-            ];
-        }
-
-        $this->property->update([
-            'images' => $this->images,
-            'videos' => $this->videos,
-        ]);
-
-        $this->newImages = [];
-        $this->newVideos = [];
     }
 
     public function removeMedia($type, $index)
@@ -81,6 +102,19 @@ class PropertyMediaManager extends Component
             'images' => $this->images,
             'videos' => $this->videos,
         ]);
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function handleMediaUploaded()
+    {
+        // Rafraîchir l'affichage après upload
+        $this->property->refresh();
+        $this->images = $this->property->images ?? [];
+        $this->videos = $this->property->videos ?? [];
     }
 
     public function render()

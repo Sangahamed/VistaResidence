@@ -1,85 +1,184 @@
 @import '@fortawesome/fontawesome-free/css/all.css';
 @tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Swiper Pagination Bullet */
+/* Variables CSS */
+:root {
+  --swiper-theme-color: theme('colors.orange.500');
+  --swiper-navigation-size: 1.5rem;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+}
+
+/* Animations de base */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Classes d'animation */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease forwards;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+
+/* Swiper modernisé */
+.swiper {
+  @apply rounded-xl overflow-hidden;
+  transition: opacity 0.3s ease;
+}
+
+.swiper:not(.initialized) {
+  @apply opacity-0;
+}
+
 .swiper-pagination-bullet {
-    background-color: white !important;
+  @apply w-3 h-3 bg-white opacity-80 transition-all duration-300;
 }
 
-/* Swiper Button Styles */
-.swiper-button-next::after,
-.swiper-button-prev::after {
-    display: none !important;
+.swiper-pagination-bullet-active {
+  @apply w-6 bg-orange-500 opacity-100 rounded-full;
 }
 
-@media (max-width: 768px) {
-    .swiper-button-prev,
-    .swiper-button-next {
-        display: none !important; /* Cache complètement les boutons en mobile */
-    }
+.swiper-button-next,
+.swiper-button-prev {
+  @apply w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center;
+  backdrop-filter: blur(2px);
+  transition: all 0.3s ease;
 }
 
-.swiper .swiper-button-prev,
-.swiper .swiper-button-next {
-    top: calc(50% + 40px); /* Déplacement vers le bas */
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  @apply bg-white shadow-lg scale-110;
 }
 
-/* Scrollbar Hide for Chrome, Edge */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-
-/* Scrollbar Hide for Firefox */
-.scrollbar-hide {
-    scrollbar-width: none;
-}
-
-/* Lightbox Styles */
+/* Lightbox amélioré */
 .lightbox {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    animation: fadeIn 0.5s;
+  @apply fixed inset-0 z-[999] bg-black/90 flex items-center justify-center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .lightbox:target {
-    display: flex;
+  @apply opacity-100 visible;
+  animation: fadeIn 0.3s ease forwards;
 }
 
 .lightbox img {
-    max-height: 90vh;
-    max-width: 90vw;
-    object-fit: contain;
-    animation: zoomIn 0.5s;
+  @apply max-h-[90vh] max-w-[90vw] object-contain;
+  animation: zoomIn 0.3s ease forwards;
 }
 
-/* Keyframes for Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.lightbox-close {
+  @apply absolute top-6 right-6 text-white text-4xl cursor-pointer;
+  transition: transform 0.2s ease;
 }
 
-@keyframes zoomIn {
-    from {
-        transform: scale(0.5);
-    }
-    to {
-        transform: scale(1);
-    }
+.lightbox-close:hover {
+  transform: rotate(90deg);
 }
 
+.lightbox-nav {
+  @apply absolute top-1/2 -translate-y-1/2 text-white text-3xl bg-black/30 rounded-full w-12 h-12 flex items-center justify-center hover:bg-black/50 transition;
+}
 
+.lightbox-prev { left: 4rem; }
+.lightbox-next { right: 4rem; }
 
-@tailwind components;
-@tailwind utilities;
+/* Cartes de propriété */
+.property-card {
+  @apply transition-all duration-300 hover:shadow-xl;
+}
+
+.property-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Boutons */
+.btn {
+  @apply transition-all duration-300;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Bouton favori */
+.favorite-btn {
+  @apply transition-all duration-300;
+}
+
+.favorite-btn.active svg {
+  animation: pulse 0.5s ease;
+  fill: currentColor;
+}
+
+/* Sliders */
+input[type="range"].range-slider {
+  @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+  -webkit-appearance: none;
+}
+
+input[type="range"].range-slider::-webkit-slider-thumb {
+  @apply w-5 h-5 bg-orange-500 rounded-full appearance-none cursor-pointer;
+  -webkit-appearance: none;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  transition: box-shadow 0.2s ease;
+}
+
+input[type="range"].range-slider:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.3);
+}
+
+/* Formulaires */
+.form-input {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all;
+}
+
+/* Étoiles de notation */
+.star-rating i {
+  @apply transition-colors duration-200;
+}
+
+/* Overlay pour images */
+.image-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .lightbox-prev { left: 1rem; }
+  .lightbox-next { right: 1rem; }
+  
+  .swiper-button-next,
+  .swiper-button-prev {
+    @apply hidden;
+  }
+}

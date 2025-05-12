@@ -1,7 +1,7 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto py-8 px-4">
+<main class="container mx-auto py-8 px-4">
     <div class="flex flex-col gap-6">
         <div>
             <h1 class="text-3xl font-bold tracking-tight">Enchères immobilières</h1>
@@ -153,7 +153,7 @@
             </div>
         @endif
     </div>
-</div>
+</main>
 @endsection
 
 @section('scripts')

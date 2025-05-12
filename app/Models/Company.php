@@ -10,9 +10,13 @@ class Company extends Model
 {
     use HasFactory;
 
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+
     protected $fillable = [
         'name', 'slug', 'description', 'logo', 'website', 'email', 
-        'phone', 'address', 'city', 'state', 'zip_code', 'country', 'owner_id'
+        'phone', 'address', 'city', 'state', 'zip_code', 'country','status', 'owner_id'
     ];
 
     protected $casts = [
@@ -42,20 +46,21 @@ class Company extends Model
             ->withTimestamps();
     }
 
+   
     public function isPending()
     {
-        return $this->status === 'pending';
+        return $this->status === self::STATUS_PENDING;
     }
 
     public function isApproved()
     {
-        return $this->status === 'approved';
+        return $this->status === self::STATUS_APPROVED;
     }
 
     public function isRejected()
     {
-        return $this->status === 'rejected';
-    } 
+        return $this->status === self::STATUS_REJECTED;
+    }
     
     public function teams()
     {

@@ -1,126 +1,169 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1>Tableau de bord particulier</h1>
-            <p class="text-muted">Bienvenue sur votre espace personnel. Gérez vos propriétés et suivez vos revenus locatifs.</p>
+<div class="container mx-auto px-4 py-6">
+    <!-- Header avec animation -->
+    <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Tableau de bord particulier</h1>
+        <p class="text-gray-500 dark:text-gray-300 mt-2">Bienvenue sur votre espace personnel. Gérez vos propriétés et suivez vos revenus locatifs.</p>
+    </div>
+
+    <!-- Statistiques avec animations hover -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Propriétés -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div class="p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Propriétés</p>
+                        <p class="text-2xl font-semibold text-gray-800 dark:text-white mt-1">{{ $stats['properties_count'] }}</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center">
+                    <span class="text-green-500 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                        </svg>
+                        +1 depuis le mois dernier
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Annonces actives -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div class="p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Annonces actives</p>
+                        <p class="text-2xl font-semibold text-gray-800 dark:text-white mt-1">{{ $stats['active_listings'] }}</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                    Inchangé depuis le mois dernier
+                </p>
+            </div>
+        </div>
+
+        <!-- Revenus locatifs -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div class="p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Revenus locatifs</p>
+                        <p class="text-2xl font-semibold text-gray-800 dark:text-white mt-1">{{ number_format($stats['rental_income']) }} €</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center">
+                    <span class="text-green-500 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                        </svg>
+                        +800 € depuis le mois dernier
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Visites en attente -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div class="p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Visites en attente</p>
+                        <p class="text-2xl font-semibold text-gray-800 dark:text-white mt-1">{{ $stats['pending_visits'] }}</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center">
+                    <span class="text-green-500 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                        </svg>
+                        +2 depuis le mois dernier
+                    </span>
+                </p>
+            </div>
         </div>
     </div>
 
-    <!-- Statistiques -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted">Propriétés</h6>
-                            <h3>{{ $stats['properties_count'] }}</h3>
-                        </div>
-                        <div class="bg-light p-3 rounded">
-                            <i class="fas fa-home text-primary"></i>
-                        </div>
-                    </div>
-                    <p class="text-muted small mt-2">+1 depuis le mois dernier</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted">Annonces actives</h6>
-                            <h3>{{ $stats['active_listings'] }}</h3>
-                        </div>
-                        <div class="bg-light p-3 rounded">
-                            <i class="fas fa-list text-success"></i>
-                        </div>
-                    </div>
-                    <p class="text-muted small mt-2">Inchangé depuis le mois dernier</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted">Revenus locatifs</h6>
-                            <h3>{{ number_format($stats['rental_income']) }} €</h3>
-                        </div>
-                        <div class="bg-light p-3 rounded">
-                            <i class="fas fa-euro-sign text-warning"></i>
-                        </div>
-                    </div>
-                    <p class="text-muted small mt-2">+800 € depuis le mois dernier</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted">Visites en attente</h6>
-                            <h3>{{ $stats['pending_visits'] }}</h3>
-                        </div>
-                        <div class="bg-light p-3 rounded">
-                            <i class="fas fa-calendar text-info"></i>
-                        </div>
-                    </div>
-                    <p class="text-muted small mt-2">+2 depuis le mois dernier</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
+    <!-- Grille principale -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Graphique des revenus locatifs -->
-        <div class="col-md-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Revenus locatifs</h5>
+        <div class="lg:col-span-2">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden animate-slide-up">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Revenus locatifs</h3>
                 </div>
-                <div class="card-body">
+                <div class="p-4">
                     <canvas id="rentalIncomeChart" height="300"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Visites à venir -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Visites à venir</h5>
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden animate-slide-up">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Visites à venir</h3>
                 </div>
-                <div class="card-body">
+                <div class="divide-y divide-gray-100 dark:divide-gray-700">
                     @if(count($upcomingVisits) > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach($upcomingVisits as $visit)
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">{{ $visit->property->title }}</h6>
-                                            <p class="mb-1 text-muted small">
-                                                <i class="fas fa-user me-1"></i> {{ $visit->user->name }}
-                                            </p>
-                                            <p class="mb-0 text-muted small">
-                                                <i class="fas fa-calendar me-1"></i> {{ $visit->visit_date->format('d/m/Y H:i') }}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span class="badge bg-success">Confirmée</span>
-                                        </div>
-                                    </div>
+                        @foreach($upcomingVisits as $visit)
+                        <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900 rounded-lg p-2 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 dark:text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
                                 </div>
-                            @endforeach
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ $visit->property->title }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        {{ $visit->user->name }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ $visit->visit_date->format('d/m/Y H:i') }}
+                                    </p>
+                                </div>
+                                <span class="ml-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                    Confirmée
+                                </span>
+                            </div>
                         </div>
+                        @endforeach
                     @else
-                        <div class="text-center py-3">
-                            <p class="text-muted">Aucune visite à venir</p>
+                        <div class="p-6 text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h4 class="mt-2 text-gray-500 dark:text-gray-400">Aucune visite à venir</h4>
+                            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Les visites programmées apparaîtront ici</p>
                         </div>
                     @endif
                 </div>
@@ -129,102 +172,143 @@
     </div>
 
     <!-- Mes propriétés -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Mes propriétés</h3>
-                <a href="{{ route('properties.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Ajouter une propriété
-                </a>
-            </div>
-            
-            <div class="row">
-                @if(count($properties) > 0)
-                    @foreach($properties as $property)
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <img src="{{ $property->featured_image ?? 'https://via.placeholder.com/300x200' }}" class="card-img-top" alt="{{ $property->title }}">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <h5 class="card-title">{{ $property->title }}</h5>
-                                        <span class="badge {{ $property->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ $property->status === 'active' ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    </div>
-                                    <p class="card-text text-muted">{{ $property->location }}</p>
-                                    <p class="card-text fw-bold">{{ number_format($property->price) }} €</p>
-                                    <p class="card-text text-muted">
-                                        {{ $property->surface }} m² - {{ $property->bedrooms }} ch.
-                                    </p>
-                                    <div class="d-flex gap-2 mt-3">
-                                        <a href="{{ route('properties.show', $property) }}" class="btn btn-sm btn-outline-primary">Détails</a>
-                                        <a href="{{ route('properties.edit', $property) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                                    </div>
-                                </div>
-                            </div>
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Mes propriétés</h2>
+            <a href="{{ route('properties.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Ajouter une propriété
+            </a>
+        </div>
+        
+        @if(count($properties) > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($properties as $property)
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="{{ $property->featured_image ?? 'https://via.placeholder.com/300x200' }}" alt="{{ $property->title }}">
+                        <span class="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $property->status === 'active' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200' }}">
+                            {{ $property->status === 'active' ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">{{ $property->title }}</h3>
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                {{ number_format($property->price) }} €
+                            </span>
                         </div>
-                    @endforeach
-                @else
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            Vous n'avez pas encore de propriétés. 
-                            <a href="{{ route('properties.create') }}" class="alert-link">Ajouter une propriété</a>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {{ $property->location }}
+                        </p>
+                        <div class="flex items-center mt-3 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="flex items-center mr-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                </svg>
+                                {{ $property->surface }} m²
+                            </span>
+                            <span class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                {{ $property->bedrooms }} ch.
+                            </span>
+                        </div>
+                        <div class="mt-6 flex space-x-3">
+                            <a href="{{ route('properties.show', $property) }}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                Détails
+                            </a>
+                            <a href="{{ route('properties.edit', $property) }}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                                Modifier
+                            </a>
                         </div>
                     </div>
-                @endif
+                </div>
+                @endforeach
             </div>
-        </div>
+        @else
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                <div class="p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-800 dark:text-white">Aucune propriété</h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Commencez par ajouter votre première propriété.</p>
+                    <div class="mt-6">
+                        <a href="{{ route('properties.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter une propriété
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Contrats actifs -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Contrats actifs</h5>
-                </div>
-                <div class="card-body">
-                    @if(count($activeContracts) > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Propriété</th>
-                                        <th>Type</th>
-                                        <th>Montant</th>
-                                        <th>Début</th>
-                                        <th>Fin</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($activeContracts as $contract)
-                                        <tr>
-                                            <td>{{ $contract->property->title }}</td>
-                                            <td>
-                                                @if($contract->type === 'rental')
-                                                    <span class="badge bg-info">Location</span>
-                                                @else
-                                                    <span class="badge bg-primary">Vente</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ number_format($contract->amount) }} €</td>
-                                            <td>{{ $contract->start_date->format('d/m/Y') }}</td>
-                                            <td>{{ $contract->end_date ? $contract->end_date->format('d/m/Y') : 'N/A' }}</td>
-                                            <td>
-                                                <a href="#" class="btn btn-sm btn-outline-primary">Détails</a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-3">
-                            <p class="text-muted">Aucun contrat actif</p>
-                        </div>
-                    @endif
-                </div>
+    <div class="mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Contrats actifs</h3>
+            </div>
+            <div class="overflow-x-auto">
+                @if(count($activeContracts) > 0)
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Propriété</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Montant</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Début</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Fin</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($activeContracts as $contract)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-white">{{ $contract->property->title }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    @if($contract->type === 'rental')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                            Location
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                                            Vente
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($contract->amount) }} €</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $contract->start_date->format('d/m/Y') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $contract->end_date ? $contract->end_date->format('d/m/Y') : 'N/A' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                    <a href="#" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                                        Détails
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="p-6 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h4 class="mt-2 text-gray-500 dark:text-gray-400">Aucun contrat actif</h4>
+                        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Les contrats actifs apparaîtront ici</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -233,38 +317,71 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Données pour le graphique des revenus locatifs
-        const rentalData = @json($rentalData);
-        
-        const ctx = document.getElementById('rentalIncomeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: rentalData.map(item => item.month),
-                datasets: [{
-                    label: 'Revenus locatifs (€)',
-                    data: rentalData.map(item => item.amount),
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value + ' €';
-                            }
+   document.addEventListener('DOMContentLoaded', function() {
+    // Données pour le graphique des revenus locatifs
+    const rentalData = @json($rentalData);
+    
+    // Trouver la valeur maximale des revenus
+    const maxAmount = Math.max(...rentalData.map(item => item.amount));
+
+    const ctx = document.getElementById('rentalIncomeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: rentalData.map(item => item.month),
+            datasets: [{
+                label: 'Revenus locatifs (CFA)',
+                data: rentalData.map(item => item.amount),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: maxAmount + 100000, // Ajoute un espace au-dessus de la plus haute valeur
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' CFA';
                         }
                     }
                 }
             }
-        });
+        }
     });
+});
+
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from { 
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 @endpush
 @endsection

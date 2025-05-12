@@ -23,7 +23,7 @@
 
     @livewireScripts
         @stack('scripts')
-        @vite('resources/js/detail.js')
+        {{-- @vite('resources/js/detail.js') --}}
         @vite('resources/js/app.js')
 </body>
 
