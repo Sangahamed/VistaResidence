@@ -4,165 +4,134 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Property;
-use App\Models\PropertyNotification;
+use App\Models\PropertyVisit;
 use App\Models\SavedSearch;
-use App\Notifications\PropertyAlert;
-use Illuminate\Support\Facades\Notification;
 
 class NotificationService
 {
-    /**
-     * Create a new property notification.
-     */
-    public function createPropertyNotification(User $user, $type, Property $property, $message, $data = null)
-    {
-        return PropertyNotification::create([
-            'user_id' => $user->id,
-            'type' => $type,
-            'property_id' => $property->id,
-            'message' => $message,
-            'data' => $data,
-        ]);
-    }
-
-    /**
-     * Notify users about a new property.
-     */
+    // PROPERTIES
     public function notifyNewProperty(Property $property)
     {
-        // Find users with saved searches matching this property
-        $savedSearches = SavedSearch::all();
-        
-        foreach ($savedSearches as $savedSearch) {
-            $user = $savedSearch->user;
-            $preferences = $user->notificationPreference;
-            
-            // Skip if user has disabled new property alerts
-            if (!$preferences || !$preferences->new_property_alerts) {
-                continue;
-            }
-            
-            // Check if property matches saved search criteria
-            if ($this->propertyMatchesSavedSearch($property, $savedSearch)) {
-                // Create in-app notification
-                $this->createPropertyNotification(
-                    $user,
-                    'new_property',
-                    $property,
-                    "Nouvelle propriété correspondant à vos critères : {$property->title}",
-                    ['saved_search_id' => $savedSearch->id]
-                );
-                
-                // Send email notification if enabled
-                if ($preferences->email_notifications) {
-                    $user->notify(new PropertyAlert($property, 'new_property', $savedSearch));
-                }
-            }
+        if ($this->shouldNotify($property->owner, 'properties', 'new')) {
+            $this->sendNotification(
+                $property->owner,
+                \App\Notifications\PropertyCreated::class,
+                $property
+            );
         }
     }
 
-    /**
-     * Notify users about a price change.
-     */
     public function notifyPriceChange(Property $property, $oldPrice, $newPrice)
     {
-        // Find users who have favorited this property
-        $users = $property->favoritedBy;
+        $usersToNotify = $property->favoritedBy->push($property->owner);
         
-        foreach ($users as $user) {
-            $preferences = $user->notificationPreference;
-            
-            // Skip if user has disabled price change alerts
-            if (!$preferences || !$preferences->price_change_alerts) {
-                continue;
-            }
-            
-            // Create in-app notification
-            $this->createPropertyNotification(
-                $user,
-                'price_change',
-                $property,
-                "Le prix de {$property->title} a changé de {$oldPrice}€ à {$newPrice}€",
-                ['old_price' => $oldPrice, 'new_price' => $newPrice]
-            );
-            
-            // Send email notification if enabled
-            if ($preferences->email_notifications) {
-                $user->notify(new PropertyAlert($property, 'price_change', null, [
-                    'old_price' => $oldPrice,
-                    'new_price' => $newPrice
-                ]));
+        foreach ($usersToNotify as $user) {
+            if ($this->shouldNotify($user, 'properties', 'price_change')) {
+                $user->notify(new \App\Notifications\PropertyPriceChanged($property, $oldPrice, $newPrice));
             }
         }
     }
 
-    /**
-     * Notify users about a status change.
-     */
+     // Notification changement de statut
     public function notifyStatusChange(Property $property, $oldStatus, $newStatus)
     {
-        // Find users who have favorited this property
-        $users = $property->favoritedBy;
+        $usersToNotify = $property->favoritedBy->push($property->owner);
         
-        foreach ($users as $user) {
-            $preferences = $user->notificationPreference;
-            
-            // Skip if user has disabled status change alerts
-            if (!$preferences || !$preferences->status_change_alerts) {
-                continue;
-            }
-            
-            // Create in-app notification
-            $this->createPropertyNotification(
-                $user,
-                'status_change',
-                $property,
-                "Le statut de {$property->title} a changé de {$oldStatus} à {$newStatus}",
-                ['old_status' => $oldStatus, 'new_status' => $newStatus]
-            );
-            
-            // Send email notification if enabled
-            if ($preferences->email_notifications) {
-                $user->notify(new PropertyAlert($property, 'status_change', null, [
-                    'old_status' => $oldStatus,
-                    'new_status' => $newStatus
-                ]));
+        foreach ($usersToNotify as $user) {
+            if ($this->shouldNotify($user, 'properties', 'status_change')) {
+                $user->notify(new \App\Notifications\PropertyStatusChanged($property, $oldStatus, $newStatus));
             }
         }
     }
 
-    /**
-     * Check if a property matches a saved search criteria.
-     */
-    private function propertyMatchesSavedSearch(Property $property, SavedSearch $savedSearch)
+    public function notifyPropertyUpdate(Property $property, array $changes)
     {
-        $criteria = json_decode($savedSearch->criteria, true);
-        
-        // Basic matching logic - can be expanded for more complex criteria
-        if (isset($criteria['property_type']) && $criteria['property_type'] != $property->property_type) {
-            return false;
+        if ($this->shouldNotify($property->owner, 'properties', 'updated')) {
+            $this->sendNotification(
+                $property->owner,
+                \App\Notifications\PropertyUpdated::class,
+                [$property, $changes]
+            );
         }
-        
-        if (isset($criteria['min_price']) && $property->price < $criteria['min_price']) {
-            return false;
+    }
+
+    
+
+    // VISITS
+    public function notifyNewVisit(PropertyVisit $visit)
+    {
+        // Notify owner
+        if ($this->shouldNotify($visit->property->owner, 'visits', 'requested')) {
+            $this->sendNotification(
+                $visit->property->owner,
+                \App\Notifications\VisitRequested::class,
+                $visit
+            );
         }
-        
-        if (isset($criteria['max_price']) && $property->price > $criteria['max_price']) {
-            return false;
+
+        // Notify assigned agent if different from owner
+        if ($visit->agent && $visit->agent->id !== $visit->property->owner_id) {
+            if ($this->shouldNotify($visit->agent, 'visits', 'requested')) {
+                $this->sendNotification(
+                    $visit->agent,
+                    \App\Notifications\VisitRequested::class,
+                    $visit
+                );
+            }
         }
-        
-        if (isset($criteria['min_bedrooms']) && $property->bedrooms < $criteria['min_bedrooms']) {
-            return false;
+    }
+
+    public function notifyVisitStatusChanged(PropertyVisit $visit, $oldStatus, $newStatus)
+{
+    $notificationClass = match($newStatus) {
+        'confirmed' => \App\Notifications\VisitConfirmed::class,
+        'cancelled' => \App\Notifications\VisitCancelled::class,
+        default => \App\Notifications\VisitStatusChanged::class
+    };
+
+    // Notifier le visiteur
+    if ($this->shouldNotify($visit->visitor, 'visits', 'status_changes')) {
+        $visit->visitor->notify(new $notificationClass($visit, $oldStatus, $newStatus));
+    }
+
+    // Notifier le propriétaire/agent
+    $recipient = $visit->agent ?? $visit->property->owner;
+    if ($this->shouldNotify($recipient, 'visits', 'status_changes')) {
+        $recipient->notify(new $notificationClass($visit, $oldStatus, $newStatus));
+    }
+}
+
+    public function notifyAddedToFavorites(Property $property, User $user)
+{
+    if ($this->shouldNotify($property->owner, 'favorites', 'added')) {
+        $property->owner->notify(new \App\Notifications\AddedToFavorites($property, $user));
+    }
+}
+
+    // SEARCHES
+    public function notifySearchMatches(SavedSearch $search, $properties)
+    {
+        if ($this->shouldNotify($search->user, 'searches', 'new_matches')) {
+            $this->sendNotification(
+                $search->user,
+                \App\Notifications\SearchMatchesFound::class,
+                [$search, $properties]
+            );
         }
-        
-        if (isset($criteria['min_bathrooms']) && $property->bathrooms < $criteria['min_bathrooms']) {
-            return false;
-        }
-        
-        if (isset($criteria['location']) && !str_contains(strtolower($property->city), strtolower($criteria['location']))) {
-            return false;
-        }
-        
-        return true;
+    }
+
+    // HELPER METHODS
+    protected function shouldNotify(User $user, $category, $type)
+    {
+        return $user->notificationPreference->shouldNotify($category, $type);
+    }
+
+    protected function sendNotification(User $user, $notificationClass, $parameters)
+    {
+        $user->notify(
+            is_array($parameters) 
+                ? new $notificationClass(...$parameters)
+                : new $notificationClass($parameters)
+        );
     }
 }

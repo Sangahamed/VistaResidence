@@ -10,30 +10,31 @@ class PropertyVisit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'property_id',
-        'visitor_id',
-        'agent_id',
-        'visit_date',
-        'visit_time_start',
-        'visit_time_end',
-        'status', // 'pending', 'confirmed', 'completed', 'cancelled'
-        'notes',
-        'visitor_notes',
-        'cancellation_reason',
-        'cancelled_by',
-        'confirmation_code',
-    ];
+    'property_id',
+    'visitor_id',
+    'agent_id',
+    'visit_date',
+    'visit_time_start',
+    'visit_time_end',
+    'status',
+    'notes',
+    'title',
+    'is_private',
+    'confirmation_code'
+];
 
     protected $casts = [
         'visit_date' => 'date',
         'visit_time_start' => 'datetime',
         'visit_time_end' => 'datetime',
         'scheduled_at' => 'datetime',
+        'is_private' => 'boolean',
     ];
 
     /**
      * Get the property associated with the visit.
      */
+    
     public function property()
     {
         return $this->belongsTo(Property::class);
@@ -53,6 +54,16 @@ class PropertyVisit extends Model
     public function agent()
     {
         return $this->belongsTo(User::class, 'agent_id');
+    }
+
+    public function agency()
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     /**
@@ -170,5 +181,10 @@ class PropertyVisit extends Model
     public function isPast()
     {
         return $this->visit_date < now()->toDateString();
+    }
+
+    public function getTypeAttribute()
+    {
+        return $this->is_private ? 'Privée' : 'Propriété';
     }
 }

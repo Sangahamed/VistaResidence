@@ -9,6 +9,9 @@ export default {
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './resources/**/*.vue',
+        "./resources/views/vendor/pagination/*.blade.php",
+        './resources/views/**/*.blade.php',
+        './node_modules/leaflet/dist/leaflet.css'
     ],
     theme: {
         extend: {

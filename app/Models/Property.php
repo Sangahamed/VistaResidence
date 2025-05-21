@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -49,8 +50,44 @@ class Property extends Model
         'panoramic_images' => 'array',
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
+        'type' => 'string',
+        'location' => 'array',
 
     ];
+
+    public function formattedPrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => number_format($this->price) . ' ' . config('app.currency')
+        );
+    }
+
+    public function featuredImageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->images->first()?->url ?? asset('images/default-property.jpg')
+        );
+    }
+
+     public function getImagesAttribute($value)
+    {
+        return json_decode($value, true) ?? [];
+    }
+
+    // Accesseur pour la première image
+    public function getFeaturedImageAttribute()
+    {
+        $images = $this->images;
+        return !empty($images) ? $images[0]['path'] : null;
+    }
+
+    public function getCoordinatesAttribute()
+    {
+        return [
+            'lat' => $this->latitude,
+            'lng' => $this->longitude
+        ];
+    }
 
     public function owner()
     {
@@ -177,10 +214,6 @@ class Property extends Model
         return $this->hasMany(PropertyView::class);
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(PropertyNotification::class);
-    }
 
     public function auctions()
     {
@@ -245,4 +278,19 @@ class Property extends Model
     }
 
    
+    public function getPropertyTypeAttribute()
+{
+    return $this->attributes['type'];
+}
+
+public function scopeNearby($query, $lat, $lng, $radius = 10)
+    {
+        return $query->whereRaw("
+            ST_Distance_Sphere(
+                POINT(longitude, latitude),
+                POINT(?, ?)
+            ) <= ?", 
+            [$lng, $lat, $radius * 1000]
+        );
+    }
 }

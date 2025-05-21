@@ -30,15 +30,17 @@ class FavoriteController extends Controller
             ->first();
         
         if ($favorite) {
-            // Si la propriété est déjà en favori, la supprimer
             $favorite->delete();
             $message = 'Propriété retirée des favoris.';
         } else {
-            // Sinon, l'ajouter aux favoris
             Favorite::create([
                 'user_id' => $user->id,
                 'property_id' => $property->id,
             ]);
+            
+            // Notification pour le propriétaire
+            $property->owner->notify(new \App\Notifications\PropertyFavorited($property, $user));
+            
             $message = 'Propriété ajoutée aux favoris.';
         }
         

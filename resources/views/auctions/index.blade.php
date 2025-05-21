@@ -1,54 +1,69 @@
 @extends('components.back.layout.back')
 
+
 @section('content')
 <main class="container mx-auto py-8 px-4">
-    <div class="flex flex-col gap-6">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight">Enchères immobilières</h1>
-            <p class="text-muted-foreground">
-                Découvrez les propriétés disponibles aux enchères et placez vos offres.
-            </p>
-        </div>
+    <div class="flex flex-col gap-8">
+        <!-- En-tête avec filtre -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Enchères immobilières</h1>
+                <p class="text-muted-foreground text-gray-600 dark:text-gray-400">
+                    Découvrez les propriétés disponibles aux enchères et placez vos offres.
+                </p>
+            </div>
 
-        <div class="flex flex-wrap gap-4 mb-6">
-            <a href="{{ route('auctions.index', ['status' => 'active']) }}" 
-                class="px-4 py-2 rounded-md {{ $status === 'active' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                Enchères en cours
-            </a>
-            <a href="{{ route('auctions.index', ['status' => 'upcoming']) }}" 
-                class="px-4 py-2 rounded-md {{ $status === 'upcoming' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                Enchères à venir
-            </a>
-            <a href="{{ route('auctions.index', ['status' => 'ended']) }}" 
-                class="px-4 py-2 rounded-md {{ $status === 'ended' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                Enchères terminées
-            </a>
             @auth
+            <div class="flex gap-2">
                 <a href="{{ route('auctions.history') }}" 
-                    class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 ml-auto">
-                    Mes enchères
+                   class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-sm font-medium transition-colors">
+                    <i class="fas fa-history mr-2"></i> Mes enchères
                 </a>
+            </div>
             @endauth
         </div>
 
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <a href="{{ route('auctions.index', ['status' => 'active']) }}" 
+               class="px-4 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ $status === 'active' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600' }}">
+                <i class="fas fa-gavel mr-2"></i> Enchères en cours
+            </a>
+            <a href="{{ route('auctions.index', ['status' => 'upcoming']) }}" 
+               class="px-4 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ $status === 'upcoming' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600' }}">
+                <i class="fas fa-clock mr-2"></i> Enchères à venir
+            </a>
+            <a href="{{ route('auctions.index', ['status' => 'ended']) }}" 
+               class="px-4 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ $status === 'ended' ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600' }}">
+                <i class="fas fa-flag-checkered mr-2"></i> Enchères terminées
+            </a>
+        </div>
+
+        <!-- Liste des enchères -->
         @if($auctions->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($auctions as $auction)
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
                         <div class="relative">
+                            <!-- Image de la propriété -->
                             @if($auction->property->featured_image)
                                 <img src="{{ asset('storage/' . $auction->property->featured_image) }}" 
                                     alt="{{ $auction->property->title }}" 
                                     class="w-full h-48 object-cover">
                             @else
-                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <div class="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                                     <i class="fas fa-home text-gray-400 text-4xl"></i>
                                 </div>
                             @endif
                             
-                            <div class="absolute top-0 right-0 m-2">
+                            <!-- Badge de statut -->
+                            <div class="absolute top-2 right-2">
                                 @if($auction->status === 'active')
-                                    <span class="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                                    <span class="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold flex items-center">
+                                        <span class="w-2 h-2 rounded-full bg-white mr-1 animate-pulse"></span>
                                         En cours
                                     </span>
                                 @elseif($auction->status === 'upcoming')
@@ -65,66 +80,73 @@
                                     </span>
                                 @endif
                             </div>
+                            
+                            <!-- Compte à rebours -->
+                            @if($auction->status === 'active')
+                                <div class="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-md text-xs">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    <span class="countdown" data-end="{{ $auction->end_date->timestamp }}">
+                                        {{ $auction->end_date->diffForHumans() }}
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                         
+                        <!-- Contenu de la carte -->
                         <div class="p-4">
-                            <h3 class="text-lg font-semibold mb-2">
+                            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                                 <a href="{{ route('auctions.show', $auction) }}" class="hover:text-primary">
                                     {{ $auction->property->title }}
                                 </a>
                             </h3>
                             
-                            <p class="text-sm text-gray-600 mb-4">
-                                {{ $auction->property->address }}, {{ $auction->property->city }}
-                            </p>
+                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                                <span>{{ $auction->property->address }}, {{ $auction->property->city }}</span>
+                            </div>
                             
-                            <div class="flex justify-between items-center mb-4">
+                            <!-- Informations sur les prix -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <p class="text-sm text-gray-500">Enchère actuelle</p>
-                                    <p class="text-xl font-bold text-primary">
-                                        {{ $auction->current_bid ? number_format($auction->current_bid, 0, ',', ' ') . ' €' : 'Aucune enchère' }}
-                                    </p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm text-gray-500">Prix de départ</p>
-                                    <p class="text-gray-700">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Prix de départ</p>
+                                    <p class="text-gray-700 dark:text-gray-300 font-medium">
                                         {{ number_format($auction->starting_price, 0, ',', ' ') }} €
                                     </p>
                                 </div>
-                            </div>
-                            
-                            <div class="flex justify-between items-center mb-4">
                                 <div>
-                                    <p class="text-sm text-gray-500">Enchères</p>
-                                    <p class="text-gray-700">{{ $auction->total_bids }}</p>
-                                </div>
-                                <div class="text-right">
-                                    @if($auction->status === 'active')
-                                        <p class="text-sm text-gray-500">Fin dans</p>
-                                        <p class="text-gray-700 countdown" data-end="{{ $auction->end_date->timestamp }}">
-                                            {{ $auction->end_date->diffForHumans() }}
-                                        </p>
-                                    @elseif($auction->status === 'upcoming')
-                                        <p class="text-sm text-gray-500">Début dans</p>
-                                        <p class="text-gray-700">
-                                            {{ $auction->start_date->diffForHumans() }}
-                                        </p>
-                                    @else
-                                        <p class="text-sm text-gray-500">Terminée le</p>
-                                        <p class="text-gray-700">
-                                            {{ $auction->end_date->format('d/m/Y H:i') }}
-                                        </p>
-                                    @endif
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Enchère actuelle</p>
+                                    <p class="text-xl font-bold text-primary">
+                                        {{ $auction->current_bid ? number_format($auction->current_bid, 0, ',', ' ') . ' €' : 'Aucune offre' }}
+                                    </p>
                                 </div>
                             </div>
                             
-                            <a href="{{ route('auctions.show', $auction) }}" class="block w-full bg-primary text-white text-center py-2 rounded-md hover:bg-primary-dark">
+                            <!-- Métriques -->
+                            <div class="flex justify-between items-center text-sm mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-user-friends mr-1 text-gray-500"></i>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ $auction->total_bids }} enchères</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-eye mr-1 text-gray-500"></i>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ $auction->views }} vues</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Bouton d'action -->
+                            <a href="{{ route('auctions.show', $auction) }}" 
+                               class="block w-full text-center py-2 px-4 rounded-md font-medium transition-colors
+                                      @if($auction->status === 'active')
+                                          bg-primary hover:bg-primary-dark text-white
+                                      @else
+                                          bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white
+                                      @endif">
                                 @if($auction->status === 'active')
-                                    Enchérir maintenant
+                                    <i class="fas fa-gavel mr-2"></i> Enchérir maintenant
                                 @elseif($auction->status === 'upcoming')
-                                    Voir les détails
+                                    <i class="fas fa-info-circle mr-2"></i> Voir les détails
                                 @else
-                                    Voir les résultats
+                                    <i class="fas fa-chart-bar mr-2"></i> Voir les résultats
                                 @endif
                             </a>
                         </div>
@@ -132,24 +154,32 @@
                 @endforeach
             </div>
             
-            <div class="mt-6">
-                {{ $auctions->links() }}
+            <!-- Pagination -->
+            <div class="mt-8">
+                {{ $auctions->links('vendor.pagination.tailwind') }}
             </div>
         @else
-            <div class="bg-white rounded-lg shadow p-8 text-center">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <!-- Aucune enchère disponible -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                     <i class="fas fa-gavel text-gray-400 text-xl"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900">Aucune enchère disponible</h3>
-                <p class="mt-1 text-sm text-gray-500">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucune enchère disponible</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     @if($status === 'active')
-                        Il n'y a actuellement aucune enchère en cours.
+                        Il n'y a actuellement aucune enchère en cours. Revenez plus tard!
                     @elseif($status === 'upcoming')
-                        Il n'y a actuellement aucune enchère à venir.
+                        Aucune enchère programmée pour le moment.
                     @else
-                        Il n'y a actuellement aucune enchère terminée.
+                        Aucune enchère terminée à afficher.
                     @endif
                 </p>
+                @if($status !== 'active')
+                    <a href="{{ route('auctions.index', ['status' => 'active']) }}" 
+                       class="mt-4 inline-flex items-center px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-md text-sm font-medium">
+                        Voir les enchères en cours
+                    </a>
+                @endif
             </div>
         @endif
     </div>
@@ -158,7 +188,8 @@
 
 @section('scripts')
 <script>
-    // Update countdown timers
+document.addEventListener('DOMContentLoaded', function() {
+    // Compte à rebours
     function updateCountdowns() {
         document.querySelectorAll('.countdown').forEach(el => {
             const endTime = parseInt(el.dataset.end) * 1000;
@@ -167,6 +198,7 @@
             
             if (distance <= 0) {
                 el.textContent = 'Terminée';
+                el.classList.add('text-red-500');
                 return;
             }
             
@@ -176,15 +208,29 @@
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
             
             if (days > 0) {
-                el.textContent = `${days}j ${hours}h ${minutes}m`;
+                el.innerHTML = `${days}<span class="text-xs">j</span> ${hours}<span class="text-xs">h</span> ${minutes}<span class="text-xs">m</span>`;
+            } else if (hours > 0) {
+                el.innerHTML = `${hours}<span class="text-xs">h</span> ${minutes}<span class="text-xs">m</span> ${seconds}<span class="text-xs">s</span>`;
             } else {
-                el.textContent = `${hours}h ${minutes}m ${seconds}s`;
+                el.innerHTML = `${minutes}<span class="text-xs">m</span> ${seconds}<span class="text-xs">s</span>`;
             }
         });
     }
     
-    // Update countdowns every second
-    setInterval(updateCountdowns, 1000);
+    // Mettre à jour les comptes à rebours chaque seconde
     updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+    
+    // Animation au survol des cartes
+    const auctionCards = document.querySelectorAll('.bg-white.rounded-lg.shadow-md');
+    auctionCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.querySelector('img')?.classList.add('scale-105', 'transition-transform', 'duration-300');
+        });
+        card.addEventListener('mouseleave', () => {
+            card.querySelector('img')?.classList.remove('scale-105');
+        });
+    });
+});
 </script>
 @endsection

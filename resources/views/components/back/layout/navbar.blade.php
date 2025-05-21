@@ -85,7 +85,7 @@
         </a>
 
         <!-- Property Comparison -->
-        <a href="{{ route('properties.comparison') }}"
+        <a href="{{ route('properties.comparison.index') }}"
             class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-500 hover:text-white rounded-lg transition-all {{ request()->routeIs('properties.comparison') ? 'bg-blue-500 text-white' : '' }}">
             <i class="fas fa-exchange-alt mr-3 text-lg"></i>
             Comparaison

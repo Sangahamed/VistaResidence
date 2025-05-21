@@ -1,3 +1,19 @@
+// Importations FullCalendar
+import { Calendar } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
+
+// Rendre disponible globalement
+window.FullCalendar = {
+    Calendar,
+    dayGridPlugin,
+    timeGridPlugin,
+    interactionPlugin,
+    listPlugin
+};
+
 // Gestion du menu mobile avec animation
 document.getElementById('menuBtn').addEventListener('click', function() {
     const sidebar = document.querySelector('aside');

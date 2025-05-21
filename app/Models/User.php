@@ -94,7 +94,7 @@ class User extends Authenticatable
     /**
      * Compte le nombre de messages non lus de l'utilisateur.
      */
-    public function unreadMessagesCount(): int
+    public function unreadMessagesCount()
     {
         return Chatify::countUnseenMessages($this->id);
     }
@@ -210,7 +210,31 @@ class User extends Authenticatable
     }
 
      
-     
+     // Ajoutez ces méthodes
+        public function isAgencyMember($agencyId = null)
+        {
+            if (!$this->agent) return false;
+            
+            return $agencyId 
+                ? $this->agent->agency_id == $agencyId
+                : $this->agent->agency_id !== null;
+        }
+
+        public function managedVisits()
+        {
+            if ($this->isSuperAdmin()) {
+                return PropertyVisit::query();
+            } elseif ($this->isCompanyAdmin()) {
+                $companyIds = $this->companies()->wherePivot('is_admin', true)->pluck('companies.id');
+                return PropertyVisit::whereIn('company_id', $companyIds);
+            } elseif ($this->isAgencyAdmin()) {
+                return PropertyVisit::where('agency_id', $this->agent->agency_id);
+            } elseif ($this->isAgent()) {
+                return $this->assignedVisits();
+            } else {
+                return $this->requestedVisits();
+            }
+        }
     
 
    public function hasCompany()
@@ -230,9 +254,10 @@ class User extends Authenticatable
     /**
      * Vérifie si l'utilisateur est administrateur d'une entreprise donnée.
      */
-    public function isCompanyAdmin($company): bool
+   public function isCompanyAdmin(): bool
     {
-        return $this->companies()->where('company_id', $company->id)->wherePivot('is_admin', true)->exists();
+        // Vérifie si l'utilisateur est admin d'au moins une company
+        return $this->companies()->wherePivot('is_admin', true)->exists();
     }
 
     /**
@@ -257,6 +282,11 @@ class User extends Authenticatable
     public function favorites()
     {
         return $this->belongsToMany(Property::class, 'user_favorites')->withTimestamps();
+    }
+
+    public function favoritedProperties()
+    {
+        return $this->belongsToMany(Property::class, 'favorites');
     }
 
     // ---------------------- Gestion des équipes et projets ----------------------
@@ -382,14 +412,24 @@ class User extends Authenticatable
     }
 
     public function notificationPreference()
-    {
-        return $this->hasOne(NotificationPreference::class);
-    }
+{
+    return $this->hasOne(NotificationPreference::class)->withDefault([
+        'email_enabled' => true,
+        'push_enabled' => true,
+        'sms_enabled' => false,
+        'frequency' => 'instant',
+        'preferences' => config('notification.default_preferences.alerts')
+    ]);
+}
 
-    public function notifications()
-    {
-        return $this->hasMany(PropertyNotification::class);
-    }
+    public function getNotificationPreferencesAttribute()
+{
+    return Cache::remember("user.{$this->id}.notif_prefs", 3600, function () {
+        return $this->notificationPreference;
+    });
+}
+
+    
 
     public function visits()
     {
@@ -457,26 +497,24 @@ class User extends Authenticatable
     /**
      * Check if the user is an admin of a specific company.
      */
-    public function isCompanyAdminOf($companyId)
-    {
-        if ($this->isAdmin()) {
-            return true;
-        }
-        
-        return $this->companies()->where('companies.id', $companyId)->wherePivot('is_admin', true)->exists();
+    public function isCompanyAdminOf($company): bool
+{
+    if ($this->isAdmin()) {
+        return true;
     }
+    
+    if (is_numeric($company)) {
+        return $this->companies()->where('companies.id', $company)
+                      ->wherePivot('is_admin', true)
+                      ->exists();
+    }
+    
+    return $this->companies()->where('companies.id', $company->id)
+                  ->wherePivot('is_admin', true)
+                  ->exists();
+}
 
-    /**
-     * Check if the user is a member of a specific agency.
-     */
-    public function isAgencyMember($agencyId)
-    {
-        if (!$this->agent) {
-            return false;
-        }
-        
-        return $this->agent->agency_id === $agencyId;
-    }
+   
 
     /**
      * Check if the user is an admin of a specific agency.

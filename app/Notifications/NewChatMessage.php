@@ -36,7 +36,7 @@ class NewChatMessage extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $url = route('chatify', ['user_id' => $this->sender->id]);
+        $url = route('messenger', ['user_id' => $this->sender->id]);
 
         return (new MailMessage)
             ->subject('Nouveau message de ' . $this->sender->name)

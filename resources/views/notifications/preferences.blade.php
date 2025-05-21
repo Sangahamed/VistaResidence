@@ -1,136 +1,95 @@
-@extends('layouts.app')
+@extends('components.back.layout.back')
 
 @section('content')
-<div class="container mx-auto py-8 px-4">
-    <div class="flex flex-col gap-6">
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-4xl mx-auto space-y-10">
+
+        <!-- Titre -->
         <div>
-            <h1 class="text-3xl font-bold tracking-tight">Préférences de notification</h1>
-            <p class="text-muted-foreground">
-                Personnalisez vos préférences de notification pour rester informé selon vos besoins.
-            </p>
+            <h1 class="text-4xl font-bold text-gray-800">Préférences de notification</h1>
+            <p class="text-gray-600 mt-2">Personnalisez vos préférences pour recevoir les notifications qui comptent pour vous.</p>
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden p-6">
-            <form action="{{ route('notifications.preferences.update') }}" method="POST">
+        <!-- Formulaire -->
+        <div class="bg-white shadow-md rounded-lg p-8 transition-all duration-300 ease-in-out hover:shadow-lg">
+            <form method="POST" action="{{ route('notifications.preferences.update') }}">
                 @csrf
                 @method('PUT')
 
-                <div class="space-y-6">
+                <div class="space-y-10">
+
+                    <!-- Canaux de réception -->
                     <div>
-                        <h2 class="text-lg font-medium text-gray-900">Canaux de notification</h2>
-                        <p class="text-sm text-gray-500">Choisissez comment vous souhaitez recevoir vos notifications.</p>
-                        
-                        <div class="mt-4 space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="email_notifications" name="email_notifications" type="checkbox" value="1" 
-                                        {{ $preferences->email_notifications ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="email_notifications" class="font-medium text-gray-700">Notifications par email</label>
-                                    <p class="text-gray-500">Recevez des emails pour les alertes importantes.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="push_notifications" name="push_notifications" type="checkbox" value="1" 
-                                        {{ $preferences->push_notifications ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="push_notifications" class="font-medium text-gray-700">Notifications push</label>
-                                    <p class="text-gray-500">Recevez des notifications sur votre navigateur.</p>
-                                </div>
-                            </div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Canaux de réception</h2>
+                        <div class="space-y-3">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="email_enabled" {{ $preferences->email_enabled ?? true ? 'checked' : '' }} class="h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition duration-200">
+                                <span>Notifications par email</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="push_enabled" {{ $preferences->push_enabled ?? true ? 'checked' : '' }} class="h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition duration-200">
+                                <span>Notifications push (application)</span>
+                            </label>
                         </div>
                     </div>
 
-                    <div class="pt-6 border-t border-gray-200">
-                        <h2 class="text-lg font-medium text-gray-900">Types d'alertes</h2>
-                        <p class="text-sm text-gray-500">Sélectionnez les types d'alertes que vous souhaitez recevoir.</p>
-                        
-                        <div class="mt-4 space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="new_property_alerts" name="new_property_alerts" type="checkbox" value="1" 
-                                        {{ $preferences->new_property_alerts ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="new_property_alerts" class="font-medium text-gray-700">Nouvelles propriétés</label>
-                                    <p class="text-gray-500">Soyez alerté lorsque de nouvelles propriétés correspondent à vos critères de recherche.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="price_change_alerts" name="price_change_alerts" type="checkbox" value="1" 
-                                        {{ $preferences->price_change_alerts ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="price_change_alerts" class="font-medium text-gray-700">Changements de prix</label>
-                                    <p class="text-gray-500">Soyez alerté lorsque le prix d'une propriété que vous suivez change.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="status_change_alerts" name="status_change_alerts" type="checkbox" value="1" 
-                                        {{ $preferences->status_change_alerts ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="status_change_alerts" class="font-medium text-gray-700">Changements de statut</label>
-                                    <p class="text-gray-500">Soyez alerté lorsque le statut d'une propriété que vous suivez change (vendu, loué, etc.).</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="saved_search_alerts" name="saved_search_alerts" type="checkbox" value="1" 
-                                        {{ $preferences->saved_search_alerts ? 'checked' : '' }}
-                                        class="h-4 w-4 text-primary border-gray-300 rounded">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="saved_search_alerts" class="font-medium text-gray-700">Recherches sauvegardées</label>
-                                    <p class="text-gray-500">Recevez des alertes basées sur vos recherches sauvegardées.</p>
-                                </div>
-                            </div>
+                    <!-- Fréquence des résumés -->
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Fréquence des résumés</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            @foreach (['instant' => 'Instantané', 'daily' => 'Quotidien', 'weekly' => 'Hebdomadaire'] as $value => $label)
+                                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-indigo-50">
+                                    <input type="radio" name="frequency" value="{{ $value }}" {{ $preferences->frequency === $value ? 'checked' : '' }} class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="ml-3">{{ $label }}</span>
+                                </label>
+                            @endforeach
                         </div>
                     </div>
 
-                    <div class="pt-6 border-t border-gray-200">
-                        <h2 class="text-lg font-medium text-gray-900">Fréquence des notifications</h2>
-                        <p class="text-sm text-gray-500">Choisissez à quelle fréquence vous souhaitez recevoir vos notifications.</p>
-                        
-                        <div class="mt-4">
-                            <select id="notification_frequency" name="notification_frequency" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
-                                <option value="instant" {{ isset($preferences->notification_frequency['type']) && $preferences->notification_frequency['type'] == 'instant' ? 'selected' : '' }}>
-                                    Instantanée
-                                </option>
-                                <option value="daily" {{ isset($preferences->notification_frequency['type']) && $preferences->notification_frequency['type'] == 'daily' ? 'selected' : '' }}>
-                                    Résumé quotidien
-                                </option>
-                                <option value="weekly" {{ isset($preferences->notification_frequency['type']) && $preferences->notification_frequency['type'] == 'weekly' ? 'selected' : '' }}>
-                                    Résumé hebdomadaire
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                    <!-- Types de notifications -->
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-6">Types de notifications</h2>
 
-                <div class="pt-6 border-t border-gray-200 mt-6">
+                        @foreach ($categories as $category)
+                            @php
+                                $types = config("notification.types.$category", []);
+                                $categoryLabel = [
+                                    'properties' => 'Propriétés',
+                                    'visits' => 'Visites',
+                                    'favorites' => 'Favoris',
+                                    'searches' => 'Recherches',
+                                ][$category] ?? ucfirst($category);
+                            @endphp
+
+                            @if (!empty($types))
+                                <div class="border border-gray-200 rounded-lg p-5 mb-6 transition-all hover:shadow-sm">
+                                    <h3 class="text-lg font-medium text-gray-800 mb-3">{{ $categoryLabel }}</h3>
+                                    <div class="space-y-3">
+                                        @foreach ($types as $type => $label)
+                                            <label class="flex items-center justify-between">
+                                                <span>{{ $label }}</span>
+                                                <input type="checkbox" name="alerts[{{ $category }}][{{ $type }}]"
+                                                    {{ $preferences->alerts[$category][$type] ?? config("notification.default_preferences.alerts.$category.$type", false) ? 'checked' : '' }}
+                                                    class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition">
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Bouton -->
                     <div class="flex justify-end">
-                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                            Enregistrer les préférences
+                        <button type="submit"
+                            class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-300 ease-in-out shadow">
+                            Enregistrer les modifications
                         </button>
                     </div>
                 </div>
             </form>
         </div>
+
     </div>
 </div>
 @endsection

@@ -14,18 +14,16 @@ class NotificationController extends Controller
      * Display a listing of the user's notifications.
      */
     public function index()
-    {
-        $notifications = PropertyNotification::where('user_id', auth()->id())
-            ->with('property')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-            
-        $unreadCount = PropertyNotification::where('user_id', auth()->id())
-            ->unread()
-            ->count();
-            
-        return view('notifications.index', compact('notifications', 'unreadCount'));
-    }
+{
+    $notifications = auth()->user()
+        ->notifications()
+        ->paginate(20);
+
+    return view('notifications.index', [
+        'notifications' => $notifications,
+        'unreadCount' => auth()->user()->unreadNotifications()->count()
+    ]);
+}
 
     /**
      * Mark a notification as read.
@@ -52,26 +50,29 @@ class NotificationController extends Controller
         return redirect()->back()->with('success', 'Toutes les notifications ont été marquées comme lues.');
     }
 
+        public function getUnreadCount()
+    {
+        return response()->json([
+            'count' => auth()->user()->unreadNotifications()->count()
+        ]);
+    }
+
     /**
      * Show the notification preferences form.
      */
     public function showPreferences()
-    {
-        $preferences = NotificationPreference::firstOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'email_notifications' => true,
-                'push_notifications' => true,
-                'new_property_alerts' => true,
-                'price_change_alerts' => true,
-                'status_change_alerts' => true,
-                'saved_search_alerts' => true,
-                'notification_frequency' => ['type' => 'instant'],
-            ]
-        );
-        
-        return view('notifications.preferences', compact('preferences'));
-    }
+   {
+    $categories = array_keys(config('notification.types'));
+    $preferences = auth()->user()->notificationPreference()->firstOrCreate(
+        ['user_id' => auth()->id()],
+        ['preferences' => config('notification.default_preferences.alerts')]
+    );
+
+    return view('notifications.preferences', [
+        'preferences' => $preferences,
+        'categories' => $categories
+    ]);
+}
 
     /**
      * Update the notification preferences.
@@ -79,28 +80,27 @@ class NotificationController extends Controller
     public function updatePreferences(Request $request)
     {
         $validated = $request->validate([
-            'email_notifications' => 'boolean',
-            'push_notifications' => 'boolean',
-            'new_property_alerts' => 'boolean',
-            'price_change_alerts' => 'boolean',
-            'status_change_alerts' => 'boolean',
-            'saved_search_alerts' => 'boolean',
-            'notification_frequency' => 'required|in:instant,daily,weekly',
+            'email_enabled' => 'boolean',
+            'push_enabled' => 'boolean',
+            'sms_enabled' => 'boolean',
+            'frequency' => 'in:instant,daily,weekly',
+            'preferences' => 'array'
         ]);
-        
-        $preferences = NotificationPreference::updateOrCreate(
+
+         auth()->user()->notificationPreference()->updateOrCreate(
             ['user_id' => auth()->id()],
-            [
-                'email_notifications' => $request->boolean('email_notifications'),
-                'push_notifications' => $request->boolean('push_notifications'),
-                'new_property_alerts' => $request->boolean('new_property_alerts'),
-                'price_change_alerts' => $request->boolean('price_change_alerts'),
-                'status_change_alerts' => $request->boolean('status_change_alerts'),
-                'saved_search_alerts' => $request->boolean('saved_search_alerts'),
-                'notification_frequency' => ['type' => $validated['notification_frequency']],
-            ]
+            $validated
         );
-        
-        return redirect()->back()->with('success', 'Préférences de notification mises à jour avec succès.');
+
+        return back()->with('success', 'Préférences mises à jour');
     }
+
+    public function loadMore(Request $request)
+{
+    $notifications = auth()->user()
+        ->notifications()
+        ->paginate(10, ['*'], 'page', $request->page);
+        
+    return view('partials.notifications-list', ['notifications' => $notifications]);
+}
 }

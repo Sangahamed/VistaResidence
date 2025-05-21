@@ -9,185 +9,148 @@ use Illuminate\Http\Request;
 
 class MapController extends Controller
 {
-    /**
-     * Display the map view with properties.
-     */
     public function index(Request $request)
     {
-        // Get filter parameters
-        $propertyType = $request->input('property_type');
-        $minPrice = $request->input('min_price');
-        $maxPrice = $request->input('max_price');
-        $minBedrooms = $request->input('min_bedrooms');
-        $minBathrooms = $request->input('min_bathrooms');
-        $location = $request->input('location');
-        
-        // Base query
-        $query = Property::whereNotNull('latitude')
-            ->whereNotNull('longitude');
-            
-        // Apply filters
-        if ($propertyType) {
-            $query->where('property_type', $propertyType);
-        }
-        
-        if ($minPrice) {
-            $query->where('price', '>=', $minPrice);
-        }
-        
-        if ($maxPrice) {
-            $query->where('price', '<=', $maxPrice);
-        }
-        
-        if ($minBedrooms) {
-            $query->where('bedrooms', '>=', $minBedrooms);
-        }
-        
-        if ($minBathrooms) {
-            $query->where('bathrooms', '>=', $minBathrooms);
-        }
-        
-        if ($location) {
-            $query->where(function($q) use ($location) {
-                $q->where('city', 'like', "%{$location}%")
-                  ->orWhere('address', 'like', "%{$location}%")
-                  ->orWhere('postal_code', 'like', "%{$location}%");
-            });
-        }
-        
-        // Get properties
-        $properties = $query->get();
-        
-        // Get points of interest if requested
-        $pointsOfInterest = [];
-        $poiTypes = $request->input('poi_types', []);
-        
-        if (!empty($poiTypes)) {
-            $pointsOfInterest = PointOfInterest::whereIn('type', $poiTypes)->get();
-        }
-        
-        return view('maps.index', compact('properties', 'pointsOfInterest'));
+        $propertyTypes = Property::select('type')
+                           ->distinct()
+                           ->pluck('type')
+                           ->filter()
+                           ->toArray();
+
+        $filters = $request->only([
+            'property_type', 
+            'min_price', 
+            'max_price',
+            'min_bedrooms',
+            'min_bathrooms',
+            'location',
+            'poi_types'
+        ]);
+
+        $properties = $this->getFilteredProperties($filters);
+        $pointsOfInterest = $this->getPointsOfInterest($filters['poi_types'] ?? []);
+
+        return view('maps.index', [
+            'propertyTypes' => $propertyTypes,
+            'properties' => $properties,
+            'pointsOfInterest' => $pointsOfInterest,
+            'priceRange' => $this->getPriceRange()
+        ]);
     }
 
-    /**
-     * Display the map for a specific property.
-     */
+    protected function getFilteredProperties(array $filters)
+    {
+        $query = Property::query()
+            ->whereNotNull('location')
+            ->when($filters['property_type'] ?? false, fn($q, $type) => $q->where('property_type', $type))
+            ->when($filters['min_price'] ?? false, fn($q, $price) => $q->where('price', '>=', $price))
+            ->when($filters['max_price'] ?? false, fn($q, $price) => $q->where('price', '<=', $price))
+            ->when($filters['min_bedrooms'] ?? false, fn($q, $bedrooms) => $q->where('bedrooms', '>=', $bedrooms))
+            ->when($filters['min_bathrooms'] ?? false, fn($q, $bathrooms) => $q->where('bathrooms', '>=', $bathrooms))
+            ->when($filters['location'] ?? false, fn($q, $location) => $q->where(function($query) use ($location) {
+                $query->where('city', 'like', "%{$location}%")
+                      ->orWhere('address', 'like', "%{$location}%")
+                      ->orWhere('postal_code', 'like', "%{$location}%");
+            }));
+
+        return $query->get();
+    }
+
+    protected function getPointsOfInterest(array $types = [])
+    {
+        if (empty($types)) {
+            return collect();
+        }
+
+        return PointOfInterest::whereIn('type', $types)->get();
+    }
+
+    protected function getPriceRange()
+    {
+        return [
+            'min' => Property::min('price'),
+            'max' => Property::max('price')
+        ];
+    }
+
     public function showProperty(Property $property)
     {
-        // Check if property has coordinates
-        if (!$property->latitude || !$property->longitude) {
-            return redirect()->route('properties.show', $property)
-                ->with('error', 'Cette propriété n\'a pas de coordonnées géographiques.');
-        }
-        
-        // Get nearby points of interest (within 1km)
-        $pointsOfInterest = PointOfInterest::selectRaw("*, (
-            6371 * acos(
-                cos(radians(?)) 
-                * cos(radians(latitude)) 
-                * cos(radians(longitude) - radians(?)) 
-                + sin(radians(?)) 
-                * sin(radians(latitude))
-            )
-        ) AS distance", [$property->latitude, $property->longitude, $property->latitude])
+        abort_unless($property->location, 404, 'Cette propriété n\'a pas de coordonnées géographiques.');
+
+        $pointsOfInterest = PointOfInterest::selectRaw("*, 
+            ST_Distance_Sphere(
+                POINT(longitude, latitude),
+                POINT(?, ?)
+            ) / 1000 AS distance", 
+            [$property->longitude, $property->latitude]
+        )
         ->having('distance', '<', 1)
         ->orderBy('distance')
         ->get();
-        
+
         return view('maps.property', compact('property', 'pointsOfInterest'));
     }
 
-    /**
-     * Get properties as GeoJSON for AJAX requests.
-     */
-    public function getPropertiesGeoJson(Request $request)
-    {
-        // Similar filtering as in index method
-        $query = Property::whereNotNull('latitude')
-            ->whereNotNull('longitude');
-            
-        // Apply filters from request
-        // ...
-        
-        $properties = $query->get();
-        
-        // Transform to GeoJSON
-        $features = [];
-        
-        foreach ($properties as $property) {
-            // Skip properties that don't want to show exact location
-            if (!$property->show_exact_location) {
-                continue;
-            }
-            
-            $features[] = [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [$property->longitude, $property->latitude]
-                ],
-                'properties' => [
-                    'id' => $property->id,
-                    'title' => $property->title,
-                    'price' => $property->price,
-                    'address' => $property->address,
-                    'property_type' => $property->property_type,
-                    'bedrooms' => $property->bedrooms,
-                    'bathrooms' => $property->bathrooms,
-                    'url' => route('properties.show', $property),
-                    'thumbnail' => $property->featured_image ? asset('storage/' . $property->featured_image) : null,
+public function getPropertiesGeoJson(Request $request)
+{
+    $properties = Property::with([]) // Retirez le with(['images']) si nécessaire
+        ->whereNotNull('latitude')
+        ->whereNotNull('longitude')
+        ->get();
+
+    $features = $properties->map(function ($property) {
+        return [
+            'type' => 'Feature',
+            'geometry' => [
+                'type' => 'Point',
+                'coordinates' => [
+                    (float)$property->longitude,
+                    (float)$property->latitude
                 ]
-            ];
-        }
-        
-        $geoJson = [
-            'type' => 'FeatureCollection',
-            'features' => $features
+            ],
+            'properties' => [
+                'id' => $property->id,
+                'title' => $property->title,
+                'price' => number_format($property->price, 0, '', ' '),
+                'address' => $property->address,
+                'type' => $property->type,
+                'bedrooms' => $property->bedrooms,
+                'bathrooms' => $property->bathrooms,
+                'url' => route('properties.show', $property),
+                'image' => $this->getFirstImageUrl($property),
+            ]
         ];
-        
-        return response()->json($geoJson);
+    });
+
+    return response()->json([
+        'type' => 'FeatureCollection',
+        'features' => $features
+    ]);
+}
+
+    protected function getPropertyAttributes(Property $property)
+    {
+        return [
+            'id' => $property->id,
+            'title' => $property->title,
+            'price' => $property->formatted_price,
+            'address' => $property->address,
+            'type' => $property->property_type,
+            'bedrooms' => $property->bedrooms,
+            'bathrooms' => $property->bathrooms,
+            'url' => route('properties.show', $property),
+            'thumbnail' => $property->featured_image_url,
+            'distance' => $property->distance ?? null
+        ];
     }
 
-    /**
-     * Get points of interest as GeoJSON for AJAX requests.
-     */
-    public function getPointsOfInterestGeoJson(Request $request)
+    private function getFirstImageUrl($property)
     {
-        $types = $request->input('types', []);
-        
-        $query = PointOfInterest::query();
-        
-        if (!empty($types)) {
-            $query->whereIn('type', $types);
+        if (empty($property->images)) {
+            return null;
         }
         
-        $pois = $query->get();
-        
-        // Transform to GeoJSON
-        $features = [];
-        
-        foreach ($pois as $poi) {
-            $features[] = [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [$poi->longitude, $poi->latitude]
-                ],
-                'properties' => [
-                    'id' => $poi->id,
-                    'name' => $poi->name,
-                    'type' => $poi->type,
-                    'description' => $poi->description,
-                    'address' => $poi->address,
-                ]
-            ];
-        }
-        
-        $geoJson = [
-            'type' => 'FeatureCollection',
-            'features' => $features
-        ];
-        
-        return response()->json($geoJson);
+        $firstImage = $property->images[0];
+        return asset('storage/' . $firstImage['path']);
     }
 }

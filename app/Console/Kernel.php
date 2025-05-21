@@ -36,6 +36,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:cleanup-temp-files')->weeklyOn(0, '02:00');
         $schedule->command('app:backup-database')->dailyAt('01:00')->environments(['production']);
         $schedule->command('app:sync-external-services')->everyFourHours();
+        $schedule->command('reminders:send')->everyFiveMinutes();
     }
 
     /**

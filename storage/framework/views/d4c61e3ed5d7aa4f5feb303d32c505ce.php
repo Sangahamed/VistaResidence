@@ -71,8 +71,12 @@
                         <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
                             <?php $__currentLoopData = $property->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <button @click="goTo(<?php echo e($index); ?>)"
-                                    :class="{ 'bg-white': currentSlide === <?php echo e($index); ?>, 'bg-white/50': currentSlide !==
-                                            <?php echo e($index); ?> }"
+                                    :class="{
+                                        'bg-white': currentSlide === <?php echo e($index); ?>,
+                                        'bg-white/50': currentSlide !==
+                                            <?php echo e($index); ?>
+
+                                    }"
                                     class="w-3 h-3 rounded-full hover:bg-white transition-all"
                                     aria-label="Aller à l'image <?php echo e($index + 1); ?>"></button>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -143,7 +147,7 @@
                         <h2 class="text-xl font-semibold text-gray-800">Actions</h2>
                     </div>
                     <div class="card-body grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <a href="<?php echo e(route('properties.visits.create', $property)); ?>" class="action-btn-primary group">
+                        <a href="<?php echo e(route('visits.create', ['property_id' => $property->id])); ?>" class="action-btn-primary group">
                             <i class="fas fa-calendar-check mr-2 group-hover:animate-bounce"></i>Demander une visite
                         </a>
                         <?php if($property->has_virtual_tour): ?>
@@ -155,11 +159,16 @@
                         <a href="<?php echo e(route('messenger', $property)); ?>" class="action-btn-secondary group">
                             <i class="fas fa-envelope mr-2 group-hover:animate-pulse"></i>Contacter l'agent
                         </a>
-                        <form action="<?php echo e(route('properties.comparison.add', $property)); ?>" method="POST">
+                        <form action="<?php echo e(route('properties.comparison.add', $property)); ?>" method="POST" class="mt-4">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" class="action-btn-secondary group w-full">
-                                <i class="fas fa-exchange-alt mr-2 group-hover:rotate-180 transition-transform"></i>Ajouter
-                                à la comparaison
+                            <button type="submit"
+                                class="flex items-center justify-center w-full md:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-[1.02]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Ajouter à la comparaison
                             </button>
                         </form>
                         <?php if(auth()->guard()->check()): ?>
@@ -362,7 +371,8 @@
                                 </a>
                             </div>
                         <?php else: ?>
-                            <form action="<?php echo e(route('properties.startConversation', $property)); ?>" method="POST" class="space-y-4">
+                            <form action="<?php echo e(route('properties.startConversation', $property)); ?>" method="POST"
+                                class="space-y-4">
                                 <?php echo csrf_field(); ?>
                                 <div class="form-group">
                                     <label for="message" class="form-label">Votre message</label>
@@ -801,52 +811,71 @@
         }
 
         /* Styles pour les transitions */
-            .alert-success {
-                @apply bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm;
+        .alert-success {
+            @apply bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
-            
-            .animate-fade-in {
-                animation: fadeIn 0.5s ease-out;
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
-            
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styles des boutons */
+        .btn-primary {
+            @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
+        }
+
+        .btn-secondary {
+            @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
+        }
+
+        .btn-danger {
+            @apply bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
+        }
+
+        /* Styles des onglets */
+        .tab-button {
+            @apply py-4 px-6 flex items-center text-sm font-medium border-b-2 border-transparent transition-all duration-300;
+        }
+
+        /* Badge */
+        .badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+
+        /* Animation de secousse */
+        .shake:hover {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
             }
-            
-            /* Styles des boutons */
-            .btn-primary {
-                @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
+
+            20%,
+            60% {
+                transform: translateX(-3px);
             }
-            
-            .btn-secondary {
-                @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
+
+            40%,
+            80% {
+                transform: translateX(3px);
             }
-            
-            .btn-danger {
-                @apply bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg;
-            }
-            
-            /* Styles des onglets */
-            .tab-button {
-                @apply py-4 px-6 flex items-center text-sm font-medium border-b-2 border-transparent transition-all duration-300;
-            }
-            
-            /* Badge */
-            .badge {
-                @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-            }
-            
-            /* Animation de secousse */
-            .shake:hover {
-                animation: shake 0.5s ease-in-out;
-            }
-            
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                20%, 60% { transform: translateX(-3px); }
-                40%, 80% { transform: translateX(3px); }
-            }
+        }
     </style>
 <?php $__env->stopPush(); ?>
 
@@ -854,32 +883,32 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         // Fonctions JavaScript pour gérer la page
-            function propertyPage() {
-                return {
-                    showDeleteModal: false,
-                    // Autres propriétés/fonctions globales si nécessaire
-                }
+        function propertyPage() {
+            return {
+                showDeleteModal: false,
+                // Autres propriétés/fonctions globales si nécessaire
             }
+        }
 
-            // Gestion du carrousel
-            function carousel(totalSlides) {
-                return {
-                    currentSlide: 0,
-                    totalSlides: totalSlides,
-                    
-                    next() {
-                        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-                    },
-                    
-                    prev() {
-                        this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
-                    },
-                    
-                    goTo(index) {
-                        this.currentSlide = index;
-                    }
+        // Gestion du carrousel
+        function carousel(totalSlides) {
+            return {
+                currentSlide: 0,
+                totalSlides: totalSlides,
+
+                next() {
+                    this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+                },
+
+                prev() {
+                    this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+                },
+
+                goTo(index) {
+                    this.currentSlide = index;
                 }
             }
+        }
         // Initialiser toutes les sections repliables comme fermées par défaut
         document.addEventListener('DOMContentLoaded', function() {
             const collapsibles = ['description', 'features', 'videos', 'map'];

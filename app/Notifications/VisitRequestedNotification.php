@@ -8,64 +8,43 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class VisitRequestedNotification extends Notification implements ShouldQueue
+class VisitRequested extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $visit;
+    public $visit;
+     public $afterCommit = true;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(PropertyVisit $visit)
     {
         $this->visit = $visit;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
-        return ['mail', 'database'];
+        return $notifiable->notificationPreference->getNotificationChannels();
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable)
     {
-        $property = $this->visit->property;
-        $visitor = $this->visit->visitor;
-        
         return (new MailMessage)
-            ->subject('Nouvelle demande de visite - ' . $property->title)
-            ->greeting('Bonjour ' . $notifiable->name . ',')
-            ->line('Une nouvelle demande de visite a été effectuée pour la propriété suivante :')
-            ->line('**' . $property->title . '** (' . $property->reference . ')')
-            ->line('**Date et heure :** ' . $this->visit->visit_date->format('d/m/Y') . ' de ' . $this->visit->visit_time_start . ' à ' . $this->visit->visit_time_end)
-            ->line('**Demandeur :** ' . $visitor->name . ' (' . $visitor->email . ')')
-            ->when($this->visit->visitor_notes, function ($message) {
-                return $message->line('**Notes du visiteur :** ' . $this->visit->visitor_notes);
-            })
-            ->action('Voir les détails', route('agent.visits.show', $this->visit))
-            ->line('Merci d\'utiliser notre plateforme !');
+            ->subject("Nouvelle demande de visite")
+            ->line("Une nouvelle visite a été demandée pour votre propriété:")
+            ->line("Propriété: {$this->visit->property->title}")
+            ->line("Date: {$this->visit->visit_date->format('d/m/Y H:i')}")
+            ->action('Voir les détails', route('visits.show', $this->visit));
     }
 
-    /**
-     * Get the array representation of the notification.
-     */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable)
     {
         return [
+            'type' => 'visit.requested',
             'visit_id' => $this->visit->id,
             'property_id' => $this->visit->property_id,
-            'property_title' => $this->visit->property->title,
-            'visitor_id' => $this->visit->visitor_id,
-            'visitor_name' => $this->visit->visitor->name,
-            'visit_date' => $this->visit->visit_date->format('Y-m-d'),
-            'visit_time' => $this->visit->visit_time_start . ' - ' . $this->visit->visit_time_end,
-            'type' => 'visit_requested',
+            'title' => "Nouvelle demande de visite",
+            'message' => "Visite demandée pour {$this->visit->property->title}",
+            'url' => route('visits.show', $this->visit),
+            'date' => $this->visit->visit_date->toIso8601String()
         ];
     }
 }

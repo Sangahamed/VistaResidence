@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class PropertyVisitStatusChangedNotification extends Notification implements ShouldQueue
+class VisitStatusChanged extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -35,7 +35,7 @@ class PropertyVisitStatusChangedNotification extends Notification implements Sho
     public function via(object $notifiable): array
     {
         // Récupérer les préférences de notification de l'utilisateur
-        $channels = ['database', 'broadcast'];
+        $channels = ['database', 'broadcast', 'mail'];
         
         if ($notifiable->notificationPreferences && $notifiable->notificationPreferences->email_visit_status) {
             $channels[] = 'mail';

@@ -8,69 +8,66 @@ use App\Models\User;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Chatify\Facades\ChatifyMessenger as Chatify;
+
 
 class PropertyMessageController extends Controller
 {
     /**
      * Initialiser une conversation à propos d'une propriété.
      */
-    public function startConversation(Request $request, Property $property)
+
+  public function startConversation(Request $request, Property $property)
     {
-        // Vérifier que l'utilisateur est connecté
+        // Vérifier que l'utilisateur est authentifié
         if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Vous devez être connecté pour envoyer un message.');
+            return redirect()->route('login')->with('error', 'Vous devez être connecté.');
         }
-        
-        // Déterminer le destinataire (propriétaire ou agent de la propriété)
-        $recipient = $property->user;
-        
-        // Si la propriété appartient à une entreprise, trouver un agent de cette entreprise
-         if ($property->company_id) {
-            $company = Company::find($property->company_id);
-            if ($company) {
-                // Trouver un agent de l'entreprise (premier utilisateur trouvé)
-                $agent = $company->users()->first();
-                if ($agent) {
-                    $recipient = $agent;
+
+        try {
+            // Récupérer le destinataire via la relation "owner" du modèle Property
+            $recipient = $property->owner;
+
+            // Si la propriété appartient à une entreprise, tenter de récupérer l'agent
+            if ($property->company_id) {
+                $company = Company::find($property->company_id);
+                if ($company) {
+                    // Ici, on cherche le premier utilisateur (agent) de l'entreprise
+                    $agent = $company->users()->first();
+                    if ($agent) {
+                        $recipient = $agent;
+                    }
                 }
             }
+
+            // Vérifier que le destinataire est valide et que l'utilisateur ne s'envoie pas un message à lui-même
+            if (!$recipient || $recipient->id === Auth::id()) {
+                return back()->with('error', 'Destinataire invalide.');
+            }
+
+            // Construire le contenu du message en lien avec la propriété
+            $messageContent = "Intérêt pour la propriété : " . $property->title
+                . ($request->message ? "\n\n" . $request->message : "");
+
+            // Envoyer le message : Chatify crée automatiquement une conversation si nécessaire
+            Chatify::newMessage([
+                'from_id'    => Auth::id(),
+                'to_id'      => $recipient->id,
+                'body'       => $messageContent,
+                'attachment' => null,
+            ]);
+
+            // Note : la méthode fetchMessages() n'est plus disponible, donc on ne l'appelle pas.
+
+            return redirect()->route('messenger', ['id' => $recipient->id])
+                ->with('success', 'Message envoyé avec succès.');
+        } catch (\Exception $e) {
+            \Log::error("Chatify Error: " . $e->getMessage());
+            return back()->with('error', 'Erreur technique: ' . $e->getMessage());
         }
-        
-        // Vérifier que le destinataire existe
-        if (!$recipient) {
-            return redirect()->back()->with('error', '⚠ Aucun destinataire trouvé pour cette propriété.');
-        }
-        
-        // Vérifier que l'utilisateur n'essaie pas de s'envoyer un message à lui-même
-        if ($recipient->id === Auth::id()) {
-            return redirect()->back()->with('error', '❌ Vous ne pouvez pas vous envoyer un message à vous-même.');
-        }
-        
-        // Utiliser la méthode correcte de Chatify pour obtenir ou créer une conversation
-        $conversation = Chatify::getConversationWith($recipient->id);
-        
-        // Préparer le message initial concernant la propriété
-        $messageText = "Bonjour, je suis intéressé(e) par votre propriété : " . $property->title . " (" . $property->reference . ").";
-        
-        // Si un message personnalisé est fourni, l'ajouter
-        if ($request->has('message') && !empty($request->message)) {
-            $messageText .= "\n\n" . $request->message;
-        }
-        
-        // Envoyer le message initial
-        Chatify::sendMessage([
-            'from_id' => Auth::id(),
-            'to_id' => $recipient->id,
-            'message' => $messageText,
-            'attachment' => null,
-        ]);
-        
-        // Rediriger vers la conversation
-        return redirect()->route('messenger')->with([
-            'id' => $recipient->id, // Chatify utilise 'id' pour ouvrir une conversation spécifique
-        ]);
     }
+
     
     /**
      * Afficher la liste des agents immobiliers disponibles pour discuter.

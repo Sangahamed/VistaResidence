@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Création de la table 'properties'
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
             $table->string('title');
@@ -24,6 +26,7 @@ return new class extends Migration
             $table->string('country')->nullable();
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
+            $table->point('location')->nullable()->after('longitude'); // Ajout de la colonne 'location'
             $table->boolean('show_exact_location')->default(true);
             $table->integer('bedrooms')->nullable();
             $table->integer('bathrooms')->nullable();
@@ -42,8 +45,23 @@ return new class extends Migration
             $table->json('panoramic_images')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamp('expires_at')->nullable();
-            
+
             $table->timestamps();
+        });
+
+        // Conversion des coordonnées existantes et mise à jour de la colonne 'location'
+        DB::statement('
+            UPDATE properties 
+            SET location = ST_PointFromText(
+                CONCAT("POINT(", COALESCE(longitude, 0), " ", COALESCE(latitude, 0), ")"),
+                4326
+            )
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ');
+
+        // Création de l'index spatial sur la colonne 'location'
+        Schema::table('properties', function (Blueprint $table) {
+            $table->spatialIndex('location');
         });
     }
 

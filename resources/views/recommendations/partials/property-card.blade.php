@@ -2,8 +2,8 @@
 
 <div class="{{ $fullWidth ? 'w-full' : 'w-full' }} bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
     <div class="relative h-48 overflow-hidden">
-        @if($property->images && is_array(json_decode($property->images, true)))
-            <img src="{{ Storage::url(json_decode($property->images, true)[0]) }}" 
+        @if(!empty($property->images) && count($property->images) > 0)
+            <img src="{{ Storage::url($property->images[0]['path']) }}" 
                  alt="{{ $property->title }}" 
                  class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
         @else
@@ -20,7 +20,7 @@
               ($property->type === 'land' ? 'Terrain' : 'Commercial'))) }}
         </div>
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            <span class="text-white font-bold">@money($property->price)</span>
+            <span class="text-white font-bold">{{ number_format($property->price, 0, ',', ' ') }} XOF</span>
         </div>
     </div>
     <div class="p-4">

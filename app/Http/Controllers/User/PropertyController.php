@@ -21,6 +21,7 @@ class PropertyController extends Controller
         return view('properties.index', compact('properties'));
     }
 
+
     public function create()
     {
         // $this->authorize('create', $property);

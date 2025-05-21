@@ -2,71 +2,70 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class NotificationPreference extends Model
 {
-    use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
-        'email_new_property',
-        'email_property_status',
-        'email_new_lead',
-        'email_lead_assigned',
-        'email_visit_requested',
-        'email_visit_status',
-        'push_new_property',
-        'push_property_status',
-        'push_new_lead',
-        'push_lead_assigned',
-        'push_visit_requested',
-        'push_visit_status',
-        'sms_new_property',
-        'sms_property_status',
-        'sms_new_lead',
-        'sms_lead_assigned',
-        'sms_visit_requested',
-        'sms_visit_status',
+        'email_enabled',
+        'push_enabled',
+        'sms_enabled',
+        'frequency',
+        'preferences'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'email_new_property' => 'boolean',
-        'email_property_status' => 'boolean',
-        'email_new_lead' => 'boolean',
-        'email_lead_assigned' => 'boolean',
-        'email_visit_requested' => 'boolean',
-        'email_visit_status' => 'boolean',
-        'push_new_property' => 'boolean',
-        'push_property_status' => 'boolean',
-        'push_new_lead' => 'boolean',
-        'push_lead_assigned' => 'boolean',
-        'push_visit_requested' => 'boolean',
-        'push_visit_status' => 'boolean',
-        'sms_new_property' => 'boolean',
-        'sms_property_status' => 'boolean',
-        'sms_new_lead' => 'boolean',
-        'sms_lead_assigned' => 'boolean',
-        'sms_visit_requested' => 'boolean',
-        'sms_visit_status' => 'boolean',
+        'email_enabled' => 'boolean',
+        'push_enabled' => 'boolean',
+        'sms_enabled' => 'boolean',
+        'preferences' => 'array'
     ];
 
-    /**
-     * Get the user that owns the notification preferences.
-     */
+    protected $attributes = [
+        'preferences' => '{
+            "properties": {
+                "new": true,
+                "updated": true,
+                "price_change": true,
+                "status_change": true
+            },
+            "visits": {
+                 "requested": true,
+                "confirmed": true,
+                "cancelled": true,
+                "rescheduled": true,
+                "reminder_24h": true,
+                "reminder_1h": true
+            },
+            "favorites": {
+                "price_drop": true,
+                "status_change": true
+            },
+            "searches": {
+                "new_matches": true
+            }
+        }'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function shouldNotify($category, $type)
+    {
+        return $this->preferences[$category][$type] ?? false;
+    }
+
+    public function getNotificationChannels()
+    {
+        $channels = [];
+        
+        if ($this->email_enabled) $channels[] = 'mail';
+        if ($this->push_enabled) $channels[] = 'database';
+        if ($this->sms_enabled) $channels[] = 'sms';
+        
+        return $channels;
     }
 }

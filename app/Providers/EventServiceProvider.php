@@ -22,6 +22,8 @@ use App\Listeners\SendNewLeadNotification;
 use App\Listeners\SendLeadAssignedNotification;
 use App\Listeners\SendPropertyVisitRequestedNotification;
 use App\Listeners\SendPropertyVisitStatusChangedNotification;
+
+
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -58,6 +60,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         PropertyVisitStatusChanged::class => [
             SendPropertyVisitStatusChangedNotification::class,
+        ],
+        'eloquent.created: App\Models\Property' => [
+        'App\Observers\PropertyObserver@created',
+        ],
+        'eloquent.updated: App\Models\Property' => [
+            'App\Observers\PropertyObserver@updated',
         ],
     ];
 

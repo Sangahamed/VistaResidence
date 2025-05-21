@@ -1,5 +1,5 @@
-import './bootstrap';
-import Swiper, { Navigation, Pagination, Autoplay, EffectFade } from 'swiper';
+import Swiper from 'swiper';
+import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 
 // Initialize Swiper with all needed modules
 Swiper.use([Navigation, Pagination, Autoplay, EffectFade]);

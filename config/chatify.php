@@ -6,7 +6,7 @@ return [
     | Messenger display name
     |-------------------------------------
     */
-    'name' => env('CHATIFY_NAME', 'Vista Messenger'),
+    'name' => env('CHATIFY_NAME', 'Chatify Messenger'),
 
     /*
     |-------------------------------------
@@ -22,9 +22,8 @@ return [
     |-------------------------------------
     */
     'routes' => [
-        'custom' => env('CHATIFY_CUSTOM_ROUTES', false),
         'prefix' => env('CHATIFY_ROUTES_PREFIX', 'messenger'),
-        'middleware' => env('CHATIFY_ROUTES_MIDDLEWARE', ['web','auth']),
+        'middleware' => env('CHATIFY_ROUTES_MIDDLEWARE', ['web', 'auth']),
         'namespace' => env('CHATIFY_ROUTES_NAMESPACE', 'Chatify\Http\Controllers'),
     ],
     'api_routes' => [
@@ -35,21 +34,20 @@ return [
 
     /*
     |-------------------------------------
-    | Pusher API credentials
+    | Reverb (anciennement Pusher) API credentials
     |-------------------------------------
     */
     'pusher' => [
         'debug' => env('APP_DEBUG', false),
-        'key' => env('PUSHER_APP_KEY'),
-        'secret' => env('PUSHER_APP_SECRET'),
-        'app_id' => env('PUSHER_APP_ID'),
+        'key' => env('REVERB_APP_KEY'),
+        'secret' => env('REVERB_APP_SECRET'),
+        'app_id' => env('REVERB_APP_ID'),
         'options' => [
-            'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
-            'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
-            'port' => env('PUSHER_PORT', 443),
-            'scheme' => env('PUSHER_SCHEME', 'https'),
-            'encrypted' => true,
-            'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
+            // Il n'est pas nécessaire de définir un cluster ici.
+            'host' => env('REVERB_HOST', 'your_reverb_host'),
+            'port' => env('REVERB_PORT', 443),
+            'scheme' => env('REVERB_SCHEME', 'https'),
+            'useTLS' => (env('REVERB_SCHEME', 'https') === 'https'),
         ],
     ],
 
@@ -66,9 +64,6 @@ return [
     /*
     |-------------------------------------
     | Gravatar
-    |
-    | imageset property options:
-    | [ 404 | mp | identicon (default) | monsterid | wavatar ]
     |-------------------------------------
     */
     'gravatar' => [
@@ -85,8 +80,8 @@ return [
     'attachments' => [
         'folder' => 'attachments',
         'download_route_name' => 'attachments.download',
-        'allowed_images' => (array) ['png','jpg','jpeg','gif'],
-        'allowed_files' => (array) ['zip','rar','txt'],
+        'allowed_images' => (array) ['png', 'jpg', 'jpeg', 'gif'],
+        'allowed_files' => (array) ['zip', 'rar', 'txt'],
         'max_upload_size' => env('CHATIFY_MAX_FILE_SIZE', 150), // MB
     ],
 
@@ -107,13 +102,10 @@ return [
         '#ff2522',
         '#9C27B0',
     ],
+
     /*
     |-------------------------------------
     | Sounds
-    | You can enable/disable the sounds and
-    | change sound's name/path placed at
-    | `public/` directory of your app.
-    |
     |-------------------------------------
     */
     'sounds' => [

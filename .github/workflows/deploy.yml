@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -22,17 +22,59 @@ jobs:
     - name: Install Composer dependencies
       run: composer install --no-dev --optimize-autoloader --no-interaction
 
-    - name: Update Laravel dependencies
-      run: composer update --no-dev --optimize-autoloader --no-interaction
+    - name: Cache composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
 
     - name: Run database migrations
       run: php artisan migrate --force
     
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
     
     - name: Compile assets
       run: |
         npm ci
         npm run build
+    
+    - name: Setup Supervisor for Reverb
+      run: |
+        sudo bash -c 'cat > /etc/supervisor/conf.d/reverb.conf <<EOL
+        [program:reverb]
+        command=/usr/bin/php ${{ github.workspace }}/artisan reverb:start
+        directory=${{ github.workspace }}
+        autostart=true
+        autorestart=true
+        stderr_logfile=/var/log/reverb.err.log
+        stdout_logfile=/var/log/reverb.out.log
+        user=www-data
+        EOL'
+        
+        sudo supervisorctl reread
+        sudo supervisorctl update
+        sudo supervisorctl start reverb
+    
+    - name: Configure Nginx for WebSockets
+      run: |
+        sudo bash -c 'cat > /etc/nginx/sites-available/reverb-proxy <<EOL
+        location /ws {
+            proxy_pass http://127.0.0.1:8080;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host \$host;
+        }
+        EOL'
+        
+        sudo nginx -t
+        sudo systemctl restart nginx
     
     - name: Deploy to production
       uses: deployphp/action@v1
