@@ -296,8 +296,8 @@ class AuthController extends Controller
         $mail_body = view('email-templates.user-forgot-email-template', $data)->render();
 
         $mailConfig = array(
-            'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name' => env('EMAIL_FROM_NAME'),
+            'mail_from_email' => env('MAIL_FROM_ADDRESS'),
+            'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
             'mail_subject' => 'Reset Password',
@@ -366,8 +366,8 @@ class AuthController extends Controller
         $mail_body = view('email-templates.user-reset-email-template', $data);
 
         $mailConfig = array(
-            'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name' => env('EMAIL_FROM_NAME'),
+            'mail_from_email' => env('MAIL_FROM_ADDRESS'),
+            'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
             'mail_subject' => 'Password Changed',
@@ -406,8 +406,8 @@ class AuthController extends Controller
 
         $mail_body = view('email-templates.user-verify-template', $data)->render();
         sendEmail([
-            'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name' => env('EMAIL_FROM_NAME'),
+            'mail_from_email' => env('MAIL_FROM_ADDRESS'),
+            'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
             'mail_subject' => 'Verify User Account',
@@ -589,8 +589,8 @@ class AuthController extends Controller
 
         $mail_body = view('email-templates.two-factor-code', $data)->render();
         sendEmail([
-            'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name' => env('EMAIL_FROM_NAME'),
+            'mail_from_email' => env('MAIL_FROM_ADDRESS'),
+            'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
             'mail_subject' => 'Votre code de vérification',

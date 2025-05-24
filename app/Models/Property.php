@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Str;
 
 
 class Property extends Model
@@ -14,6 +14,7 @@ class Property extends Model
     use HasFactory;
 
     protected $fillable = [
+        'slug',
         'title',
         'description',
         'type', // apartment, house, land, etc.
@@ -54,6 +55,23 @@ class Property extends Model
         'location' => 'array',
 
     ];
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($property) {
+            $property->slug = Str::slug($property->title) . '-' . uniqid();
+        });
+    }
+
+    public function generateUniqueSlug($title)
+    {
+        $slug = Str::slug($title);
+        $count = Property::where('slug', 'LIKE', "{$slug}%")->count();
+        return $count ? "{$slug}-{$count}" : $slug;
+    }
 
     public function formattedPrice(): Attribute
     {
@@ -123,6 +141,16 @@ class Property extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
     }
 
     /**
@@ -279,18 +307,18 @@ class Property extends Model
 
    
     public function getPropertyTypeAttribute()
-{
-    return $this->attributes['type'];
-}
-
-public function scopeNearby($query, $lat, $lng, $radius = 10)
     {
-        return $query->whereRaw("
-            ST_Distance_Sphere(
-                POINT(longitude, latitude),
-                POINT(?, ?)
-            ) <= ?", 
-            [$lng, $lat, $radius * 1000]
-        );
+        return $this->attributes['type'];
+    }
+
+    public function scopeNearby($query, $lat, $lng, $radius = 10)
+    {
+            return $query->whereRaw("
+                ST_Distance_Sphere(
+                    POINT(longitude, latitude),
+                    POINT(?, ?)
+                ) <= ?", 
+                [$lng, $lat, $radius * 1000]
+            );
     }
 }

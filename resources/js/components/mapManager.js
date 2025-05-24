@@ -1,7 +1,6 @@
-// resources/js/components/mapManager.js
 import L from 'leaflet'
 
-// resources/js/components/mapManager.js
+
 export default function() {
     return {
         map: null,

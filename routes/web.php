@@ -34,6 +34,7 @@ use App\Http\Controllers\User\ReportController;
 use App\Http\Controllers\User\PropertyComparisonController;
 use App\Http\Controllers\User\MortgageCalculatorController;
 use App\Http\Controllers\User\CalendarController;
+use App\Http\Controllers\User\ReviewController;
 use App\Livewire\MapManager;
 use App\Livewire\MapFilters;
 
@@ -54,6 +55,12 @@ use App\Livewire\MapFilters;
 // PUBLIC ROUTES
 // ======================
 
+// Home & Public Content
+Route::controller(HomeController::class)->group(function () {
+    Route::get('/', 'index')->name('home');
+    Route::get('/InfoPropriete/{property:slug}', 'detail')->name('detail');
+});
+
 // Authentication Routes
 Route::controller(AuthController::class)->group(function () {
     Route::get('/register', 'RegisterFrom')->name('register');
@@ -70,29 +77,6 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/send-password-reset-link', 'sendPasswordResetLink')->name('send-password-reset-link');
 });
 
-// Home & Public Content
-Route::controller(HomeController::class)->group(function () {
-    Route::get('/', 'index')->name('home');
-    Route::get('/InfoPropriete', 'detail')->name('detail');
-});
-
-// Property Routes
-Route::prefix('properties')->name('properties.')->group(function () {
-    Route::get('/', [PropertyController::class, 'index'])->name('index');
-    Route::get('/{property}', [PropertyController::class, 'show'])->name('show');
-    Route::get('/search', [PropertySearchController::class, 'search'])->name('search');
-    
-    // Property Comparison
-    Route::prefix('comparison')->name('comparison.')->group(function () {
-        Route::get('/co', [PropertyComparisonController::class, 'index'])->name('index');
-        Route::post('/add/{property}', [PropertyComparisonController::class, 'add'])->name('add');
-        Route::post('/remove/{property}', [PropertyComparisonController::class, 'remove'])->name('remove');
-        Route::post('/clear', [PropertyComparisonController::class, 'clear'])->name('clear');
-    });
-    
-    // Favorites
-    Route::post('/{property}/favorite', [FavoriteController::class, 'toggle'])->name('properties.favorite');
-});
 
 // Agency & Agent Public Profiles
 Route::prefix('agencies')->group(function() {
@@ -120,18 +104,9 @@ Route::get('/map', [MapController::class, 'index'])->name('map.index');
 
 
 
-// Recommendations
-Route::prefix('recommendations')->group(function() {
-    Route::get('/', [RecommendationController::class, 'index'])->name('recommendations.index');
-    Route::get('/similar/{property}', [RecommendationController::class, 'similarProperties'])->name('recommendations.similar');
-    Route::get('/preferences', [RecommendationController::class, 'editPreferences'])->name('recommendations.preferences');
-    Route::put('/preferences', [RecommendationController::class, 'updatePreferences'])->name('recommendations.update');
-    Route::post('/record-view/{property}', [RecommendationController::class, 'recordView'])->name('recommendations.record-view');
-});
 
-// Messages
-Route::post('/properties/{property}/start-conversation', [PropertyMessageController::class, 'startConversation'])
-    ->name('properties.startConversation');
+
+
 
 // ======================
 // AUTHENTICATED ROUTES
@@ -150,6 +125,35 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('agency')->group(function() {
             Route::get('/', [AgencyDashboardController::class, 'index'])->name('dashboard.agency');
         });
+    });
+
+    // Property Routes
+    Route::prefix('properties')->name('properties.')->group(function () {
+        Route::get('/', [PropertyController::class, 'index'])->name('index');
+        Route::get('/{property}', [PropertyController::class, 'show'])->name('show');
+        Route::get('/search', [PropertySearchController::class, 'search'])->name('search');
+        
+        // Property Comparison
+        Route::prefix('comparison')->name('comparison.')->group(function () {
+            Route::get('/co', [PropertyComparisonController::class, 'index'])->name('index');
+            Route::post('/add/{property}', [PropertyComparisonController::class, 'add'])->name('add');
+            Route::post('/remove/{property}', [PropertyComparisonController::class, 'remove'])->name('remove');
+            Route::post('/clear', [PropertyComparisonController::class, 'clear'])->name('clear');
+        });
+        
+    });
+    
+    // Messages
+    Route::post('/properties/{property}/start-conversation', [PropertyMessageController::class, 'startConversation'])
+        ->name('properties.startConversation');
+
+    // Recommendations
+    Route::prefix('recommendations')->group(function() {
+        Route::get('/', [RecommendationController::class, 'index'])->name('recommendations.index');
+        Route::get('/similar/{property}', [RecommendationController::class, 'similarProperties'])->name('recommendations.similar');
+        Route::get('/preferences', [RecommendationController::class, 'editPreferences'])->name('recommendations.preferences');
+        Route::put('/preferences', [RecommendationController::class, 'updatePreferences'])->name('recommendations.update');
+        Route::post('/record-view/{property}', [RecommendationController::class, 'recordView'])->name('recommendations.record-view');
     });
 
     // Profile
@@ -201,6 +205,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/reviews/{property}', [ReviewController::class, 'store'])->name('reviews.store');
 
     // Property Visits
     Route::get('/visits/calendar', [PropertyVisitController::class, 'calendar'])->name('visits.calendar');

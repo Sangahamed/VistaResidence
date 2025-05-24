@@ -15,6 +15,7 @@ return new class extends Migration
         // Création de la table 'properties'
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
+            $table->string('slug')->unique();
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('type'); // apartment, house, land, etc.

@@ -152,8 +152,8 @@ class AdminController extends Controller
 
         $mail_body = view('email-templates.two-factor-code', $data)->render();
         sendEmail([
-            'mail_from_email' => env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name' => env('EMAIL_FROM_NAME'),
+            'mail_from_email' => env('MAIL_FROM_ADDRESS'),
+            'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
             'mail_subject' => 'Votre code de vérification',
@@ -298,8 +298,8 @@ class AdminController extends Controller
         $mail_body = view('email-templates.admin-forgot-email-template', $data)->render();
 
         $mailConfig = array(
-            'mail_from_email'=>env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name'=>env('EMAIL_FROM_NAME'),
+            'mail_from_email'=>env('MAIL_FROM_ADDRESS'),
+            'mail_from_name'=>env('MAIL_FROM_NAME'),
             'mail_recipient_email'=>$admin->email,
             'mail_recipient_name'=>$admin->name,
             'mail_subject'=>'Reset password',
@@ -371,8 +371,8 @@ class AdminController extends Controller
         $mail_body = view('email-templates.admin-reset-email-template', $data)->render();
 
         $mailConfig = array(
-            'mail_from_email'=>env('EMAIL_FROM_ADDRESS'),
-            'mail_from_name'=>env('EMAIL_FROM_NAME'),
+            'mail_from_email'=>env('MAIL_FROM_ADDRESS'),
+            'mail_from_name'=>env('MAIL_FROM_NAME'),
             'mail_recipient_email'=>$admin->email,
             'mail_recipient_name'=>$admin->name,
             'mail_subject'=>'Password changed',

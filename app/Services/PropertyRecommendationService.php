@@ -82,6 +82,27 @@ class PropertyRecommendationService
     /**
      * Trouver des propriétés similaires aux préférences
      */
+
+     public function getNearbyProperties($lat, $lng, $radius = 10)
+    {
+        return Property::selectRaw("*, 
+            (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
+            cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
+            sin(radians(latitude))) AS distance", [$lat, $lng, $lat])
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance')
+            ->get();
+    }
+
+    public function getSimilarProperties(Property $property, $limit = 4)
+    {
+        return Property::where('type', $property->type)
+            ->where('id', '!=', $property->id)
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+    }
+    
     private function findSimilarProperties(array $preferences, array $excludeIds, int $limit): array
     {
         $query = Property::query()

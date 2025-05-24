@@ -10,6 +10,8 @@ use App\Models\Property;
 use App\Models\PropertyVisit;
 use App\Observers\PropertyObserver;
 use App\Observers\VisitObserver;
+use Livewire\Livewire;
+use App\Livewire\ToggleFavorite;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -39,5 +41,6 @@ class AppServiceProvider extends ServiceProvider
 
         Property::observe(PropertyObserver::class);
         PropertyVisit::observe(VisitObserver::class);
+        Livewire::component('toggle-favorite', ToggleFavorite::class);
     }
 }

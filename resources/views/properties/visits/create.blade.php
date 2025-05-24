@@ -1,7 +1,7 @@
-@extends('components.back.layout.back')
+@extends('components.front.layouts.front')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4 sm:px-6 lg:px-8 mt-12">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
         <div class="mb-8 text-center">
@@ -37,7 +37,7 @@
                                     <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">{{ $property->type }}</span>
                                     <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">{{ $property->surface }} m²</span>
                                     <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">{{ $property->bedrooms }} chambres</span>
-                                    <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">{{ number_format($property->price, 0, ',', ' ') }} €</span>
+                                    <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">{{ number_format($property->price, 0, ',', ' ') }} CFA</span>
                                 </div>
                             </div>
                         </div>

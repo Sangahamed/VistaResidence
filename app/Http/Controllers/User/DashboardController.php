@@ -15,7 +15,7 @@ use App\Models\TaskAttachment;
 use App\Models\Team;
 use App\Models\Message;
 use App\Models\Favorite;
-use App\Models\Visit;
+use App\Models\PropertyVisit;
 use App\Models\Contract;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -72,7 +72,7 @@ class DashboardController extends Controller
         
         // Statistiques de base
         $stats = [
-            'properties_viewed' => Visit::where('user_id', $user->id)->count(),
+            'properties_viewed' => PropertyVisit::where('visitor_id', $user->id)->count(),
             'favorites_count' => Favorite::where('user_id', $user->id)->count(),
             'messages_count' => Message::where('sender_id', $user->id)
                 ->orWhere('recipient_id', $user->id)
@@ -81,8 +81,8 @@ class DashboardController extends Controller
         ];
         
         // Propriétés récemment visitées
-        $recentVisits = Visit::with('property')
-            ->where('user_id', $user->id)
+        $recentVisits = PropertyVisit::with('property')
+            ->where('visitor_id', $user->id)
             ->latest()
             ->take(5)
             ->get();
@@ -131,7 +131,7 @@ class DashboardController extends Controller
                 ->where('type', 'rental')
                 ->where('status', 'active')
                 ->sum('amount'),
-            'pending_visits' => Visit::whereHas('property', function ($query) use ($user) {
+            'pending_visits' => PropertyVisit::whereHas('property', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })
             ->where('status', 'pending')
@@ -145,7 +145,7 @@ class DashboardController extends Controller
             ->get();
         
         // Visites à venir
-        $upcomingVisits = Visit::with(['property', 'user'])
+        $upcomingVisits = PropertyVisit::with(['property', 'user'])
             ->whereHas('property', function ($query) use ($user) {
                 $query->where('owner_id', $user->id);
             })

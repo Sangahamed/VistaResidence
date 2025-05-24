@@ -23,28 +23,15 @@ class FavoriteController extends Controller
      */
     public function toggle(Property $property)
     {
-        $user = Auth::user();
-        
-        $favorite = Favorite::where('user_id', $user->id)
-            ->where('property_id', $property->id)
-            ->first();
+        $favorite = $property->favorites()->where('user_id', auth()->id())->first();
         
         if ($favorite) {
             $favorite->delete();
-            $message = 'Propriété retirée des favoris.';
+            return response()->json(['success' => true, 'action' => 'removed']);
         } else {
-            Favorite::create([
-                'user_id' => $user->id,
-                'property_id' => $property->id,
-            ]);
-            
-            // Notification pour le propriétaire
-            $property->owner->notify(new \App\Notifications\PropertyFavorited($property, $user));
-            
-            $message = 'Propriété ajoutée aux favoris.';
+            $property->favorites()->create(['user_id' => auth()->id()]);
+            return response()->json(['success' => true, 'action' => 'added']);
         }
-        
-        return redirect()->back()->with('success', $message);
     }
 
     /**

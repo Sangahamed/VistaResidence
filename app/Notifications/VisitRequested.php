@@ -13,16 +13,21 @@ class VisitRequested extends Notification implements ShouldQueue
     use Queueable;
 
     public $visit;
-     public $afterCommit = true;
+    //  public $afterCommit = true;
 
     public function __construct(PropertyVisit $visit)
     {
         $this->visit = $visit;
     }
 
-    public function via($notifiable)
+    // public function via($notifiable)
+    // {
+    //     return $notifiable->notificationPreference->getNotificationChannels();
+    // }
+
+     public function via(object $notifiable): array
     {
-        return $notifiable->notificationPreference->getNotificationChannels();
+        return ['mail', 'database'];
     }
 
     public function toMail($notifiable)
@@ -45,6 +50,7 @@ class VisitRequested extends Notification implements ShouldQueue
             'message' => "Visite demandée pour {$this->visit->property->title}",
             'url' => route('visits.show', $this->visit),
             'date' => $this->visit->visit_date->toIso8601String()
+
         ];
     }
 }

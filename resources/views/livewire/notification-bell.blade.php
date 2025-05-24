@@ -27,9 +27,9 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium {{ $notification->unread() ? 'text-gray-900' : 'text-gray-500' }}">
-                                {{ $notification->data['title'] }}
+                                {{ $notification->data['title'] ?? 'Notification' }}
                             </p>
-                            <p class="text-xs text-gray-500">{{ $notification->data['message'] }}</p>
+                            <p class="text-xs text-gray-500">{{ $notification->data['message'] ?? 'message' }}</p>
                             <p class="text-xs text-gray-400 mt-1">
                                 {{ $notification->created_at->diffForHumans() }}
                             </p>

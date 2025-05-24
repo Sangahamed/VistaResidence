@@ -56,14 +56,14 @@
                             <div class="flex justify-between items-center">
                                 <p
                                     class="text-sm font-semibold {{ $notification->unread() ? 'text-gray-900' : 'text-gray-500' }}">
-                                    {{ $notification->data['title'] }}
+                                    {{ $notification->data['title'] ?? 'Notification' }}
                                 </p>
                                 <span class="text-xs text-gray-400">
                                     {{ $notification->created_at->format('d/m/Y H:i') }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-600 mt-1">
-                                {{ $notification->data['message'] }}
+                                {{ $notification->data['message']  ?? 'message' }}
                             </p>
                             @if (!empty($notification->data['action']))
                                 <div class="mt-2">

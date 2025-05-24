@@ -33,6 +33,7 @@ class PropertyController extends Controller
         // $this->authorize('create', $property);
 
         $validated = $request->validate([
+            
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|string',
@@ -81,6 +82,7 @@ class PropertyController extends Controller
         // $this->authorize('update', $property);
 
         $validated = $request->validate([
+            'name' => 'required|unique:properties,slug,' . $property->id,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|string',

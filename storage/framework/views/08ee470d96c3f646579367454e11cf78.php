@@ -56,7 +56,7 @@
                             <div class="flex justify-between items-center">
                                 <p
                                     class="text-sm font-semibold <?php echo e($notification->unread() ? 'text-gray-900' : 'text-gray-500'); ?>">
-                                    <?php echo e($notification->data['title']); ?>
+                                    <?php echo e($notification->data['title'] ?? 'Notification'); ?>
 
                                 </p>
                                 <span class="text-xs text-gray-400">
@@ -65,7 +65,7 @@
                                 </span>
                             </div>
                             <p class="text-sm text-gray-600 mt-1">
-                                <?php echo e($notification->data['message']); ?>
+                                <?php echo e($notification->data['message']  ?? 'message'); ?>
 
                             </p>
                             <?php if(!empty($notification->data['action'])): ?>

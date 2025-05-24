@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Chatify\Facades\ChatifyMessenger as Chatify;
 
@@ -423,11 +424,11 @@ class User extends Authenticatable
 }
 
     public function getNotificationPreferencesAttribute()
-{
-    return Cache::remember("user.{$this->id}.notif_prefs", 3600, function () {
-        return $this->notificationPreference;
-    });
-}
+    {
+        return Cache::remember("user.{$this->id}.notif_prefs", 3600, function () {
+            return $this->notificationPreference;
+        });
+    }
 
     
 

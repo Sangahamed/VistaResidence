@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\VisitRequestedNotification;
+use App\Notifications\VisitRequested;
 use App\Notifications\VisitConfirmedNotification;
 use App\Notifications\VisitCancelledNotification;
 use Illuminate\Support\Str;
@@ -63,7 +63,7 @@ class PropertyVisitController extends Controller
             $query->whereDate('visit_date', '<=', $request->date_to);
         }
 
-        $visits = $query->latest('visit_date')->paginate(10);
+        $visits = $query->latest('created_at')->paginate(10);
 
         $statuses = [
             'pending' => 'En attente',
@@ -104,6 +104,7 @@ class PropertyVisitController extends Controller
 
     public function store(Request $request)
     {
+        // Validation des données
         $validated = $request->validate([
             'property_id' => 'nullable|exists:properties,id',
             'visit_date' => 'required|date|after_or_equal:today',
@@ -113,22 +114,26 @@ class PropertyVisitController extends Controller
             'title' => 'required_if:property_id,null|string|max:255'
         ]);
 
-        $property = $validated['property_id'] ? Property::with('owner')->find($validated['property_id']) : null;
+        // Vérifier si la visite est liée à une propriété
+        $propertyId = $validated['property_id'] ?? null;
+        $property = $propertyId ? Property::with('owner')->find($propertyId) : null;
 
-        // Déterminer l'agent responsable selon le type de propriétaire
+        // Déterminer l'agent responsable en fonction du propriétaire de la propriété
         $agentId = null;
         if ($property) {
             if ($property->owner->isIndividual()) {
-                // Propriété appartenant à un particulier
                 $agentId = $property->owner_id;
             } elseif ($property->owner->isCompany()) {
-                // Propriété appartenant à une entreprise - prendre le premier agent de la compagnie
                 $agentId = $property->owner->company->agents()->first()->id ?? null;
             }
+        }else {
+            // Si la visite n'est PAS liée à une propriété, l'agent est l'utilisateur connecté
+            $agentId = Auth::id();
         }
 
+        // Création de la visite
         $visit = PropertyVisit::create([
-            'property_id' => $validated['property_id'] ?? null,
+            'property_id' => $propertyId,
             'visitor_id' => Auth::id(),
             'agent_id' => $agentId,
             'visit_date' => $validated['visit_date'],
@@ -137,19 +142,20 @@ class PropertyVisitController extends Controller
             'status' => $property ? 'pending' : 'confirmed',
             'notes' => $validated['notes'] ?? null,
             'title' => $validated['title'] ?? null,
-            'is_private' => is_null($validated['property_id'] ?? null),
+            'is_private' => is_null($propertyId),
             'confirmation_code' => Str::random(8),
         ]);
 
-        // Notifier le propriétaire/agent si visite liée à une propriété
+        // Notifier l'agent responsable si la visite est liée à une propriété
         if ($property && $agentId) {
-            $agent = User::find($agentId);
-            $agent->notify(new VisitRequestedNotification($visit));
+            User::find($agentId)?->notify(new VisitRequested($visit));
         }
 
+        // Redirection après création
         return redirect()->route('visits.show', $visit)
             ->with('success', 'Visite créée avec succès!');
     }
+
 
 
     public function show(PropertyVisit $visit)
@@ -244,7 +250,7 @@ class PropertyVisitController extends Controller
         // Notifier le nouvel agent si changé
         if ($visit->agent_id && $visit->agent_id !== $oldAgentId) {
             $agent = User::find($visit->agent_id);
-            $agent->notify(new VisitRequestedNotification($visit));
+            $agent->notify(new VisitRequested($visit));
         }
 
         return redirect()->route('visits.show', $visit)

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\PropertyVisit;
 use Illuminate\Bus\Queueable;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,6 +26,11 @@ class VisitConfirmedNotification extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      */
+    // public function via($notifiable)
+    // {
+    //     return $notifiable->notificationPreference->getNotificationChannels();
+    // }
+
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
@@ -66,6 +72,10 @@ class VisitConfirmedNotification extends Notification implements ShouldQueue
             'visit_time' => $this->visit->visit_time_start . ' - ' . $this->visit->visit_time_end,
             'confirmation_code' => $this->visit->confirmation_code,
             'type' => 'visit_confirmed',
+            'title' => 'Visite Confirmer : ' . $this->visit->property->title,  // <-- AJOUT
+            'message' => 'La visite prévue le ' . $this->visit->visit_date->format('d/m/Y') . ' a été confirmee.',
+            'url' => route('visits.show', $this->visit),
+
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\PropertyVisit;
 use Illuminate\Bus\Queueable;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,6 +26,11 @@ class VisitCancelledNotification extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      */
+
+    //  public function via($notifiable)
+    // {
+    //     return $notifiable->notificationPreference->getNotificationChannels();
+    // }
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
@@ -64,6 +70,11 @@ class VisitCancelledNotification extends Notification implements ShouldQueue
             'visit_date' => $this->visit->visit_date->format('Y-m-d'),
             'visit_time' => $this->visit->visit_time_start . ' - ' . $this->visit->visit_time_end,
             'type' => 'visit_cancelled',
+            'title' => 'Visite annulée : ' . $this->visit->property->title,  // <-- AJOUT
+            'message' => 'La visite prévue le ' . $this->visit->visit_date->format('d/m/Y') . ' a été annulée.',
+            'url' => route('visits.show', $this->visit),
+
         ];
     }
+
 }

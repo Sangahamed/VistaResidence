@@ -64,10 +64,10 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium <?php echo e($notification->unread() ? 'text-gray-900' : 'text-gray-500'); ?>">
-                                <?php echo e($notification->data['title']); ?>
+                                <?php echo e($notification->data['title'] ?? 'Notification'); ?>
 
                             </p>
-                            <p class="text-xs text-gray-500"><?php echo e($notification->data['message']); ?></p>
+                            <p class="text-xs text-gray-500"><?php echo e($notification->data['message'] ?? 'message'); ?></p>
                             <p class="text-xs text-gray-400 mt-1">
                                 <?php echo e($notification->created_at->diffForHumans()); ?>
 

@@ -15,7 +15,7 @@ class NotificationService
         if ($this->shouldNotify($property->owner, 'properties', 'new')) {
             $this->sendNotification(
                 $property->owner,
-                \App\Notifications\PropertyCreated::class,
+                \App\Notifications\NewPropertyNotification::class,
                 $property
             );
         }
@@ -61,7 +61,8 @@ class NotificationService
     public function notifyNewVisit(PropertyVisit $visit)
     {
         // Notify owner
-        if ($this->shouldNotify($visit->property->owner, 'visits', 'requested')) {
+         // Vérifier si la visite est liée à une propriété avant d'envoyer la notification
+        if ($visit->property && $this->shouldNotify($visit->property->owner, 'visits', 'requested')) {
             $this->sendNotification(
                 $visit->property->owner,
                 \App\Notifications\VisitRequested::class,
@@ -70,7 +71,7 @@ class NotificationService
         }
 
         // Notify assigned agent if different from owner
-        if ($visit->agent && $visit->agent->id !== $visit->property->owner_id) {
+        if ($visit->property  && $visit->agent && $visit->agent->id !== $visit->property->owner_id) {
             if ($this->shouldNotify($visit->agent, 'visits', 'requested')) {
                 $this->sendNotification(
                     $visit->agent,

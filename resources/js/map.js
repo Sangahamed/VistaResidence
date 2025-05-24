@@ -1,5 +1,5 @@
-// resources/js/map.js
-import { mapManager } from './components/mapManager'
+import mapManager from './components/mapManager';
+
 
 // Expose la fonction au scope global
 window.mapManager = mapManager
