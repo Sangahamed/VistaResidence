@@ -63,4 +63,8 @@ return [
         'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'ipinfo' => [
+    'token' => env('IPINFO_TOKEN', 'c13076d0636645'),
+    ],
+
 ];

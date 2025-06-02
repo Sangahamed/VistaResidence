@@ -22,17 +22,24 @@ class FavoriteController extends Controller
      * Ajoute ou supprime une propriété des favoris.
      */
     public function toggle(Property $property)
-    {
-        $favorite = $property->favorites()->where('user_id', auth()->id())->first();
-        
-        if ($favorite) {
-            $favorite->delete();
-            return response()->json(['success' => true, 'action' => 'removed']);
-        } else {
-            $property->favorites()->create(['user_id' => auth()->id()]);
-            return response()->json(['success' => true, 'action' => 'added']);
-        }
+{
+    $user = auth()->user();
+    $favorite = $property->favorites()->where('user_id', $user->id)->first();
+    
+    if ($favorite) {
+        $favorite->delete();
+        $isFavorite = false;
+    } else {
+        $property->favorites()->create(['user_id' => $user->id]);
+        $isFavorite = true;
     }
+    
+    return response()->json([
+        'success' => true,
+        'action' => $isFavorite ? 'added' : 'removed',
+        'is_favorite' => $isFavorite
+    ]);
+}
 
     /**
      * Affiche la liste des propriétés favorites de l'utilisateur.

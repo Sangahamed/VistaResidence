@@ -3,13 +3,14 @@
 namespace App\Notifications;
 
 use App\Models\PropertyVisit;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class VisitStatusChanged extends Notification implements ShouldQueue
+class PropertyVisitStatusChangedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

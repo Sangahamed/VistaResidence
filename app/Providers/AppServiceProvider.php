@@ -11,6 +11,11 @@ use App\Models\PropertyVisit;
 use App\Observers\PropertyObserver;
 use App\Observers\VisitObserver;
 use Livewire\Livewire;
+use App\Services\PropertySearchService;
+use App\Services\RecommendationService;
+use App\Services\GeoLocationService;
+use App\Services\EnhancedGeoLocationService;
+use App\Services\PropertyViewService;
 use App\Livewire\ToggleFavorite;
 
 
@@ -21,7 +26,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Enregistrer les services
+        $this->app->singleton(GeoLocationService::class, function ($app) {
+            return new GeoLocationService();
+        });
+
+        $this->app->singleton(EnhancedGeoLocationService::class, function ($app) {
+            return new EnhancedGeoLocationService();
+        });
+
+        $this->app->singleton(PropertySearchService::class, function ($app) {
+            return new PropertySearchService($app->make(GeoLocationService::class));
+        });
+
+        $this->app->singleton(RecommendationService::class, function ($app) {
+            return new RecommendationService($app->make(EnhancedGeoLocationService::class));
+        });
+
+        $this->app->singleton(PropertyViewService::class, function ($app) {
+            return new PropertyViewService();
+        });
     }
 
     /**

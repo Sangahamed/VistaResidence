@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('saved_searches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('session_id')->nullable();
+            $table->index(['session_id']);
             $table->string('name');
             $table->json('criteria');
-            $table->enum('alert_frequency', ['instant', 'daily', 'weekly', 'monthly'])->nullable();
-            $table->timestamp('last_alert_sent_at')->nullable();
             $table->timestamps();
         });
     }

@@ -16,11 +16,19 @@ class PropertyVisit extends Model
     'visit_date',
     'visit_time_start',
     'visit_time_end',
+    'scheduled_at',
     'status',
     'notes',
     'title',
     'is_private',
     'confirmation_code'
+];
+
+protected $dates = [
+    'visit_date',
+    'scheduled_at',
+    'created_at',
+    'updated_at'
 ];
 
     protected $casts = [

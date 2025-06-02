@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('type'); // apartment, house, land, etc.
             $table->string('status'); // for_sale, for_rent, sold, rented
+            $table->enum('availability_status',['active','bloquer','en cours'])->default('en cours');
             $table->decimal('price', 12, 2);
             $table->string('address')->nullable();
             $table->string('city')->nullable();
@@ -35,6 +36,7 @@ return new class extends Migration
             $table->integer('year_built')->nullable();
             $table->json('features')->nullable();
             $table->boolean('is_featured')->default(false);
+            $table->float('viral_score')->default(0);
             $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('company_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('agency_id')->nullable()->constrained()->onDelete('set null');

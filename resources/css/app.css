@@ -13,24 +13,48 @@
 
 /* Animations de base */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(20px);
   }
-  to { 
+
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Classes d'animation */
@@ -42,9 +66,26 @@
   animation: slideUp 0.6s ease forwards;
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-livewire-enter {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+#nprogress .bar {
+  background: #f97316 !important; /* orange-500 */
+  height: 4px;
+}
 
 /* Swiper modernisé */
 .swiper {
@@ -108,8 +149,13 @@
   @apply absolute top-1/2 -translate-y-1/2 text-white text-3xl bg-black/30 rounded-full w-12 h-12 flex items-center justify-center hover:bg-black/50 transition;
 }
 
-.lightbox-prev { left: 4rem; }
-.lightbox-next { right: 4rem; }
+.lightbox-prev {
+  left: 4rem;
+}
+
+.lightbox-next {
+  right: 4rem;
+}
 
 /* Cartes de propriété */
 .property-card {
@@ -174,11 +220,51 @@ input[type="range"].range-slider:active::-webkit-slider-thumb {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .lightbox-prev { left: 1rem; }
-  .lightbox-next { right: 1rem; }
-  
+  .lightbox-prev {
+    left: 1rem;
+  }
+
+  .lightbox-next {
+    right: 1rem;
+  }
+
   .swiper-button-next,
   .swiper-button-prev {
     @apply hidden;
   }
+}
+
+
+.notification-item.unread {
+  background-color: #f0f9ff;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from,
+.notification-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+
+.loader {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  background: #f8f9fa;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }

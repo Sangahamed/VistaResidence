@@ -5,48 +5,71 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Favorite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ToggleFavorite extends Component
 {
     public $property;
-    public $isFavorite;
+    public $isFavorite = false;
+    public $propertyId;
 
     public function mount($property)
     {
         $this->property = $property;
-        $this->isFavorite = $property->favorites()
-            ->where('user_id', Auth::id())
-            ->exists();
+        $this->propertyId = $property->id;
+        $this->updateFavoriteState();
     }
 
     public function updateFavoriteState()
-{
-    $this->isFavorite = $this->property->favorites()->where('user_id', auth()->id())->exists();
-}
-
+    {
+        if (Auth::check()) {
+            $this->isFavorite = $this->property->favorites()
+                ->where('user_id', Auth::id())
+                ->exists();
+        }
+    }
 
     public function toggle()
     {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
+        try {
+            if (!Auth::check()) {
+                $this->dispatch('show-login-modal');
+                return;
+            }
 
-        if ($this->isFavorite) {
-            Favorite::where([
-                'user_id' => Auth::id(),
-                'property_id' => $this->property->id
-            ])->delete();
-            $this->dispatch('favoriteUpdated', propertyId: $this->property->id);
-        } else {
-            Favorite::create([
-                'user_id' => Auth::id(),
-                'property_id' => $this->property->id
-            ]);
-            $this->dispatch('favoriteUpdated', propertyId: $this->property->id);
-        }
+            $userId = Auth::id();
+            $propertyId = $this->propertyId;
 
-        // Mettre à jour l'état du favori en temps réel
-        $this->isFavorite = !$this->isFavorite;
+            if ($this->isFavorite) {
+                // Supprimer des favoris
+                Favorite::where([
+                    'user_id' => $userId,
+                    'property_id' => $propertyId
+                ])->delete();
+                
+                $this->isFavorite = false;
+                $message = 'Retiré des favoris';
+            } else {
+                // Ajouter aux favoris
+                Favorite::firstOrCreate([
+                    'user_id' => $userId,
+                    'property_id' => $propertyId
+                ]);
+                
+                $this->isFavorite = true;
+                $message = 'Ajouté aux favoris';
+            }
+
+            // Émettre l'événement avec le bon format
+            $this->dispatch('favoriteUpdated', $propertyId);
+
+            // Notification de succès (optionnel)
+            session()->flash('message', $message);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors du toggle favori: ' . $e->getMessage());
+            session()->flash('error', 'Une erreur est survenue. Veuillez réessayer.');
+        }
     }
 
     public function render()

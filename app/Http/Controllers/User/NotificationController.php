@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\PropertyNotification;
+use App\Models\Notification;
 use App\Models\NotificationPreference;
 use Illuminate\Http\Request;
 
@@ -30,7 +30,7 @@ class NotificationController extends Controller
      */
     public function markAsRead($id)
     {
-        $notification = PropertyNotification::where('user_id', auth()->id())
+        $notification = Notification::where('user_id', auth()->id())
             ->findOrFail($id);
             
         $notification->markAsRead();
@@ -43,7 +43,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead()
     {
-        PropertyNotification::where('user_id', auth()->id())
+        Notification::where('user_id', auth()->id())
             ->unread()
             ->update(['read_at' => now()]);
             

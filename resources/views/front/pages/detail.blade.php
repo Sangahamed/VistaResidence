@@ -63,7 +63,7 @@
                             Images ({{ count($property->images) }})
                         </button>
 
-                        @if (count($property->videos) > 0)
+                        @if (!empty($property->videos) && is_array($property->videos))
                             <button @click="activeTab = 'videos'"
                                 :class="activeTab === 'videos' ? 'text-orange-500 border-orange-500' :
                                     'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
@@ -112,21 +112,25 @@
                 </div>
 
                 <!-- VIDEOS -->
-                <div x-show="activeTab === 'videos'" x-transition>
-                    <template x-if="activeTab === 'videos'">
-                        <div class="grid grid-cols-1 gap-6">
-                            @foreach ($property->videos as $video)
-                                <div
-                                    class="relative aspect-w-16 aspect-h-9 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
-                                    <iframe class="w-full h-full" src="{{ Storage::url($video['path']) }}" frameborder="0"
-                                        allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen>
-                                    </iframe>
-                                </div>
-                            @endforeach
-                        </div>
-                    </template>
-                </div>
+                @php $videos = collect($property->videos); @endphp
+                @if ($videos->isNotEmpty())
+                    <div x-show="activeTab === 'videos'" x-transition>
+                        <template x-if="activeTab === 'videos'">
+                            <div class="grid grid-cols-1 gap-6">
+                                @foreach ($property->videos as $video)
+                                    <div
+                                        class="relative aspect-w-16 aspect-h-9 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                                        <iframe class="w-full h-full" src="{{ Storage::url($video['path']) }}"
+                                            frameborder="0"
+                                            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </template>
+                    </div>
+                @endif
             </div>
 
             <!-- Lightbox (inchangé) -->
@@ -286,7 +290,7 @@
                                 </div>
                             @endif
 
-                            @foreach ($property->features ?? [] as $feature)
+                            @foreach (json_decode($property->features ?? '[]', true) as $feature)
                                 <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                     <div class="feature-icon p-3 rounded-full mr-4">
                                         <i class="fas fa-tag text-orange-500"></i>

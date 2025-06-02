@@ -195,7 +195,6 @@ class DashboardController extends Controller
 
         if ($user->isClient()) {
             $user->account_type = 'individual';
-            $user->role = 'agent';
             $user->save();
 
             return redirect()->route('dashboard.individual')->with('success', 'Vous êtes maintenant un particulier.');

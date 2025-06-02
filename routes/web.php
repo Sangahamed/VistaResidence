@@ -35,6 +35,7 @@ use App\Http\Controllers\User\PropertyComparisonController;
 use App\Http\Controllers\User\MortgageCalculatorController;
 use App\Http\Controllers\User\CalendarController;
 use App\Http\Controllers\User\ReviewController;
+use App\Http\Controllers\User\LocationController;
 use App\Livewire\MapManager;
 use App\Livewire\MapFilters;
 
@@ -56,10 +57,16 @@ use App\Livewire\MapFilters;
 // ======================
 
 // Home & Public Content
+Route::get('/api/get-location', function () {
+    $geoService = new App\Services\EnhancedGeoLocationService();
+    return response()->json($geoService->getLocationFromIP());
+});
+
 Route::controller(HomeController::class)->group(function () {
     Route::get('/', 'index')->name('home');
     Route::get('/InfoPropriete/{property:slug}', 'detail')->name('detail');
 });
+Route::post('/store-position', [LocationController::class, 'store']);
 
 // Authentication Routes
 Route::controller(AuthController::class)->group(function () {
@@ -79,25 +86,23 @@ Route::controller(AuthController::class)->group(function () {
 
 
 // Agency & Agent Public Profiles
-Route::prefix('agencies')->group(function() {
+Route::prefix('agencies')->group(function () {
     Route::get('/', [AgencyController::class, 'publicIndex'])->name('agencies.public.index');
     Route::get('/{agency}', [AgencyController::class, 'publicShow'])->name('agencies.public.show');
 });
 
-Route::prefix('agents')->group(function() {
+Route::prefix('agents')->group(function () {
     Route::get('/', [AgentController::class, 'publicIndex'])->name('agents.public.index');
     Route::get('/{agent}', [AgentController::class, 'publicShow'])->name('agents.public.show');
 });
 
 // Tools
-Route::prefix('tools')->group(function() {
+Route::prefix('tools')->group(function () {
     // Mortgage Calculator
     Route::prefix('mortgage')->name('mortgage.')->group(function () {
         Route::get('/', [MortgageCalculatorController::class, 'publicIndex'])->name('calculator');
         Route::post('/calculate', [MortgageCalculatorController::class, 'publicCalculate'])->name('calculate');
     });
-    
-
 });
 
 Route::get('/map', [MapController::class, 'index'])->name('map.index');
@@ -112,17 +117,17 @@ Route::get('/map', [MapController::class, 'index'])->name('map.index');
 // AUTHENTICATED ROUTES
 // ======================
 Route::middleware(['auth'])->group(function () {
-    
+
     // Dashboard
-    Route::prefix('dashboard')->group(function() {
+    Route::prefix('dashboard')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/client', [DashboardController::class, 'clientDashboard'])->name('dashboard.client');
         Route::get('/individual', [DashboardController::class, 'individualDashboard'])->name('dashboard.individual');
         Route::get('/company', [DashboardController::class, 'companyDashboard'])->name('dashboard.company');
         Route::post('/switch-to-individual', [DashboardController::class, 'switchToIndividual'])->name('switch.to.individual');
-        
+
         // Agency Dashboard
-        Route::prefix('agency')->group(function() {
+        Route::prefix('agency')->group(function () {
             Route::get('/', [AgencyDashboardController::class, 'index'])->name('dashboard.agency');
         });
     });
@@ -132,7 +137,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [PropertyController::class, 'index'])->name('index');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('show');
         Route::get('/search', [PropertySearchController::class, 'search'])->name('search');
-        
+
         // Property Comparison
         Route::prefix('comparison')->name('comparison.')->group(function () {
             Route::get('/co', [PropertyComparisonController::class, 'index'])->name('index');
@@ -140,15 +145,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/remove/{property}', [PropertyComparisonController::class, 'remove'])->name('remove');
             Route::post('/clear', [PropertyComparisonController::class, 'clear'])->name('clear');
         });
-        
     });
-    
+
     // Messages
     Route::post('/properties/{property}/start-conversation', [PropertyMessageController::class, 'startConversation'])
         ->name('properties.startConversation');
 
     // Recommendations
-    Route::prefix('recommendations')->group(function() {
+    Route::prefix('recommendations')->group(function () {
         Route::get('/', [RecommendationController::class, 'index'])->name('recommendations.index');
         Route::get('/similar/{property}', [RecommendationController::class, 'similarProperties'])->name('recommendations.similar');
         Route::get('/preferences', [RecommendationController::class, 'editPreferences'])->name('recommendations.preferences');
@@ -167,10 +171,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Notifications
-     Route::prefix('notifications')->name('notifications.')->group(function () {
+    Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::get('/count', [NotificationController::class, 'getUnreadCount']);
-        Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
         Route::patch('/read-all', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
         Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
         Route::get('/preferences', [NotificationController::class, 'showPreferences'])->name('preferences');
@@ -190,9 +194,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{property}/statistics', [PropertyStatisticsController::class, 'show'])
             ->name('statistics')
             ->middleware(['permission:view-statistics']);
-        
+
         // Virtual Tours
-        Route::prefix('{property}/virtual-tour')->name('virtual-tour.')->group(function() {
+        Route::prefix('{property}/virtual-tour')->name('virtual-tour.')->group(function () {
             Route::get('/', [VirtualTourController::class, 'show'])->name('show');
             Route::middleware(['permission:manage-virtual-tours'])->group(function () {
                 Route::get('/edit', [VirtualTourController::class, 'edit'])->name('edit');
@@ -211,12 +215,12 @@ Route::middleware(['auth'])->group(function () {
     // Property Visits
     Route::get('/visits/calendar', [PropertyVisitController::class, 'calendar'])->name('visits.calendar');
     // Mise à jour du statut
-Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'updateStatus'])
-    ->name('visits.update-status');
+    Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'updateStatus'])
+        ->name('visits.update-status');
 
-// Annulation (avec méthode POST)
-        Route::get('/visits/{visit}/cancel', [PropertyVisitController::class, 'cancelForm'])->name('visits.cancel.form');
-        Route::post('/visits/{visit}/cancel', [PropertyVisitController::class, 'cancel'])->name('visits.cancel');
+    // Annulation (avec méthode POST)
+    Route::get('/visits/{visit}/cancel', [PropertyVisitController::class, 'cancelForm'])->name('visits.cancel.form');
+    Route::post('/visits/{visit}/cancel', [PropertyVisitController::class, 'cancel'])->name('visits.cancel');
     Route::prefix('visits')->name('visits.')->group(function () {
         Route::get('/', [PropertyVisitController::class, 'index'])->name('index');
         Route::get('/create', [PropertyVisitController::class, 'create'])->name('create');
@@ -225,16 +229,16 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
         Route::get('/{visit}/edit', [PropertyVisitController::class, 'edit'])->name('edit');
         Route::put('/{visit}', [PropertyVisitController::class, 'update'])->name('update');
         Route::delete('/{visit}', [PropertyVisitController::class, 'destroy'])->name('destroy');
-        
+
         // Actions supplémentaires
         Route::post('/{visit}/confirm', [PropertyVisitController::class, 'confirm'])->name('confirm');
         Route::post('/{visit}/complete', [PropertyVisitController::class, 'complete'])->name('complete');
         // Route::post('/{visit}/cancel', [PropertyVisitController::class, 'cancel'])->name('cancel');
         Route::post('/{visit}/note', [PropertyVisitController::class, 'addNote'])->name('add-note');
-        
+
         // Calendrier
-    
-    Route::get('/calendar/events', [PropertyVisitController::class, 'calendarEvents'])->name('calendar.events');
+
+        Route::get('/calendar/events', [PropertyVisitController::class, 'calendarEvents'])->name('calendar.events');
     });
 
     // Leads Management
@@ -254,7 +258,7 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
     });
 
     // Companies
-    Route::prefix('companies')->name('companies.')->group(function() {
+    Route::prefix('companies')->name('companies.')->group(function () {
         Route::get('/', [CompanyController::class, 'index'])->name('index');
         Route::get('/create', [CompanyController::class, 'create'])->name('create');
         Route::post('/', [CompanyController::class, 'store'])->name('store');
@@ -270,12 +274,12 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
         Route::get('/', [AuctionController::class, 'index'])->name('index');
         Route::get('/history', [AuctionController::class, 'userHistory'])->name('history');
         Route::get('/{auction}', [AuctionController::class, 'show'])->name('show');
-        
+
         // Participation
         Route::middleware(['permission:participate-auctions'])->group(function () {
             Route::post('/{auction}/bid', [AuctionController::class, 'placeBid'])->name('bid');
         });
-        
+
         // Management
         Route::middleware(['permission:manage-auctions'])->group(function () {
             Route::get('/create', [AuctionController::class, 'create'])->name('create');
@@ -289,7 +293,7 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
     // ======================
     // AGENCY ADMIN ROUTES
     // ======================
-    Route::middleware(['role:agency_admin,admin,super_admin'])->group(function () {
+    Route::middleware(['role:agency_admin,admin'])->group(function () {
         // Agents Management
         Route::prefix('agency/agents')->name('agents.')->group(function () {
             Route::get('/', [AgentController::class, 'index'])->name('index');
@@ -302,9 +306,9 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
             Route::get('/{agent}/properties', [AgentController::class, 'properties'])->name('properties');
             Route::get('/{agent}/leads', [AgentController::class, 'leads'])->name('leads');
         });
-        
+
         // Agency Reports
-        Route::prefix('agency/reports')->name('agency.reports.')->group(function() {
+        Route::prefix('agency/reports')->name('agency.reports.')->group(function () {
             Route::get('/', [ReportController::class, 'agencyIndex'])->name('index');
         });
     });
@@ -312,7 +316,7 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
     // ======================
     // COMPANY ADMIN ROUTES
     // ======================
-    Route::middleware(['role:admin,super_admin'])->group(function () {
+    Route::middleware(['role:admin'])->group(function () {
         // Agencies Management
         Route::prefix('management/agencies')->name('agencies.')->group(function () {
             Route::get('/', [AgencyController::class, 'index'])->name('index');
@@ -328,9 +332,9 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
             Route::put('/{agency}/agents/{user}', [AgencyController::class, 'updateAgent'])->name('update-agent');
             Route::delete('/{agency}/agents/{user}', [AgencyController::class, 'removeAgent'])->name('remove-agent');
         });
-        
+
         // Company Reports
-        Route::prefix('company/reports')->name('company.reports.')->group(function() {
+        Route::prefix('company/reports')->name('company.reports.')->group(function () {
             Route::get('/', [ReportController::class, 'companyIndex'])->name('index');
         });
     });
@@ -349,13 +353,16 @@ Route::patch('visits/{visit}/update-status', [PropertyVisitController::class, 'u
             Route::put('/{user}', [UserController::class, 'update'])->name('update');
             Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
-        
+
         // System Reports
-        Route::prefix('system/reports')->name('system.reports.')->group(function() {
+        Route::prefix('system/reports')->name('system.reports.')->group(function () {
             Route::get('/', [ReportController::class, 'systemIndex'])->name('index');
         });
     });
 });
 
 // Help Pages
-Route::view('/help/virtual-tour-guide', 'properties.virtual-tour-guide')->name('properties.virtual-tour-guide');
+
+Route::get('/help/virtual-tour-guide', function () {
+    return redirect('https://support.google.com/maps/answer/7011737');
+})->name('help.virtual-tour-guide');

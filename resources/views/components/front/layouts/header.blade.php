@@ -171,142 +171,133 @@
 
     <!-- Action Buttons -->
     <div class="flex items-center gap-4">
-        <a href="#"
-            class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-indigo-500/30">
-            Poster une annonce
-        </a>
-
+        <form method="POST" action="{{ route('switch.to.individual') }}">
+            @csrf
+            <button type="submit"
+                class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-indigo-500/30">
+                Poster une annonce
+            </button>
+        </form>
         <!-- Notification Bell (visible when logged in) -->
         @auth
             <div class="ml-3 relative group">
                 @livewire('notification-bell')
             </div>
-            @endauth
+        @endauth
 
-            <!-- User Menu -->
-            <div class="relative group">
-                @auth
-                    <!-- Logged In State -->
-                    <button class="flex items-center gap-1 text-gray-900 hover:text-indigo-600 transition-colors duration-300">
-                        <img class="h-8 w-8 rounded-full"
-                            src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&color=7F9CF5&background=EBF4FF"
-                            alt="{{ auth()->user()->name }}">
-                        <svg class="h-4 w-4 text-gray-400 group-hover:text-indigo-600 transition-colors duration-300"
-                            viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-
-                    <!-- User Dropdown Menu -->
-                    <div
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 divide-y divide-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 origin-top-right z-50">
-                        <div class="px-4 py-3">
-                            <p class="text-sm">Connecté en tant que</p>
-                            <p class="text-sm font-medium text-gray-900 truncate">john.doe@example.com</p>
-                        </div>
-
-                        <div class="py-1">
-                            <a href="#"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Tableau
-                                de bord</a>
-                            <a href="#"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Paramètres</a>
-                            <a href="#"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Messages</a>
-                        </div>
-
-                        <div class="py-1">
-                            <a href="#"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Déconnexion</a>
-                        </div>
-                    </div>
-                @else
-                    <!-- Logged Out State -->
-                    <a href="{{ route('login') }}"
-                        class="text-gray-900 hover:text-indigo-600 transition-colors duration-300 relative group">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <span
-                            class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                    </a>
-                @endauth
-            </div>
-        </div>
-    </header>
-
-    <!-- Mobile Header -->
-    <header
-        class="lg:hidden fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200/50 z-50">
-        <nav class="flex justify-around items-center py-2">
-            <!-- Icon: Home -->
-            <a href="#"
-                class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
-                <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 12l9-9 9 9M4 10v10a2 2 0 002 2h3.5m7 0H18a2 2 0 002-2V10"></path>
-                </svg>
-                <span class="text-xs group-hover:font-medium transition-all duration-300">Home</span>
-            </a>
-
-            <!-- Icon: Menu -->
-            <a href="#"
-                class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
-                <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                <span class="text-xs group-hover:font-medium transition-all duration-300">Menu</span>
-            </a>
-
-            <!-- Icon: Search -->
-            <a href="#"
-                class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
-                <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M10 4a6 6 0 016 6 6 6 0 01-1.5 4l4.5 4.5m-5.5-9a4 4 0 100 8 4 4 0 000-8z"></path>
-                </svg>
-                <span class="text-xs group-hover:font-medium transition-all duration-300">Search</span>
-            </a>
-
-            <!-- Icon: Profile -->
+        <!-- User Menu -->
+        <div class="relative group">
             @auth
-                <a href="#"
-                    class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group relative">
-                    <div class="relative">
-                        <img class="h-6 w-6 rounded-full group-hover:scale-110 transition-transform duration-300"
-                            src="https://randomuser.me/api/portraits/men/32.jpg" alt="User profile">
-                        <span class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
-                    </div>
-                    <span class="text-xs group-hover:font-medium transition-all duration-300">Profile</span>
-                </a>
-            @else
-                <a href="{{ route('login') }}"
-                    class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
-                    <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 4.5a6 6 0 016 6v.75a9 9 0 01-18 0V10.5a6 6 0 016-6z"></path>
+                <!-- Logged In State -->
+                <button class="flex items-center gap-1 text-gray-900 hover:text-indigo-600 transition-colors duration-300">
+                    <img class="h-8 w-8 rounded-full"
+                        src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&color=7F9CF5&background=EBF4FF"
+                        alt="{{ auth()->user()->name }}">
+                    <svg class="h-4 w-4 text-gray-400 group-hover:text-indigo-600 transition-colors duration-300"
+                        viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
                     </svg>
-                    <span class="text-xs group-hover:font-medium transition-all duration-300">Login</span>
+                </button>
+
+                <!-- User Dropdown Menu -->
+                <div
+                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 divide-y divide-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 origin-top-right z-50">
+                    <div class="px-4 py-3">
+                        <p class="text-sm">Connecté en tant que</p>
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}</p>
+                    </div>
+
+                    <div class="py-1">
+                        <a href="{{ route('dashboard') }}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Tableau
+                            de bord</a>
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Paramètres</a>
+                        <a href="{{ route('messenger') }}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Messages</a>
+                    </div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="py-1">
+                        @csrf
+                        <button type="submit"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">Déconnexion</button>
+                    </form>
+                </div>
+            @else
+                <!-- Logged Out State -->
+                <a href="{{ route('login') }}"
+                    class="text-gray-900 hover:text-indigo-600 transition-colors duration-300 relative group">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <span
+                        class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                 </a>
             @endauth
-        </nav>
-    </header>
+        </div>
+    </div>
+</header>
 
-{{-- <script>
-function markNotificationAsRead(notificationId) {
-    fetch(`/notifications/${notificationId}/read`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        }
-    });
-}
-</script> --}}
+<!-- Mobile Header -->
+<header
+    class="lg:hidden fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200/50 z-50">
+    <nav class="flex justify-around items-center py-2">
+        <!-- Icon: Home -->
+        <a href="#"
+            class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
+            <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 12l9-9 9 9M4 10v10a2 2 0 002 2h3.5m7 0H18a2 2 0 002-2V10"></path>
+            </svg>
+            <span class="text-xs group-hover:font-medium transition-all duration-300">Home</span>
+        </a>
+
+        <!-- Icon: Menu -->
+        <a href="#"
+            class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
+            <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <span class="text-xs group-hover:font-medium transition-all duration-300">Menu</span>
+        </a>
+
+        <!-- Icon: Search -->
+        <a href="#"
+            class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
+            <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10 4a6 6 0 016 6 6 6 0 01-1.5 4l4.5 4.5m-5.5-9a4 4 0 100 8 4 4 0 000-8z"></path>
+            </svg>
+            <span class="text-xs group-hover:font-medium transition-all duration-300">Search</span>
+        </a>
+
+        <!-- Icon: Profile -->
+        @auth
+            <a href="#"
+                class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group relative">
+                <div class="relative">
+                    <img class="h-6 w-6 rounded-full group-hover:scale-110 transition-transform duration-300"
+                        src="https://randomuser.me/api/portraits/men/32.jpg" alt="User profile">
+                    <span class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
+                </div>
+                <span class="text-xs group-hover:font-medium transition-all duration-300">Profile</span>
+            </a>
+        @else
+            <a href="{{ route('login') }}"
+                class="flex flex-col items-center p-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-300 group">
+                <svg class="h-6 w-6 mb-1 group-hover:scale-110 transition-transform duration-300" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 4.5a6 6 0 016 6v.75a9 9 0 01-18 0V10.5a6 6 0 016-6z"></path>
+                </svg>
+                <span class="text-xs group-hover:font-medium transition-all duration-300">Login</span>
+            </a>
+        @endauth
+    </nav>
+</header>

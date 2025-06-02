@@ -31,8 +31,10 @@
         "chart.js": "^4.4.9",
         "frappe-gantt": "^1.0.3",
         "leaflet": "^1.9.4",
+        "nprogress": "^0.2.0",
         "sortablejs": "^1.15.6",
         "swiper": "^11.2.6",
-        "tailwindcss-animate": "^1.0.7"
+        "tailwindcss-animate": "^1.0.7",
+        "toastify-js": "^1.12.0"
     }
 }

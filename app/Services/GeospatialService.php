@@ -1,6 +1,6 @@
 <?php
 
-// app/Services/GeospatialService.php
+
 namespace App\Services;
 
 use App\Models\Property;

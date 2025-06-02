@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\SavedSearch;
+use App\Models\User;
 use App\Models\Property;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,9 +29,9 @@ class NewPropertiesMatchingSearch extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      */
-    public function via($notifiable)
+   public function via($notifiable)
     {
-        return ['mail'];
+        return $notifiable->notificationPreference->getNotificationChannels();
     }
 
     /**
@@ -45,11 +46,23 @@ class NewPropertiesMatchingSearch extends Notification implements ShouldQueue
 
         // Ajouter les propriétés trouvées
         foreach ($this->properties as $property) {
-            $mailMessage->line('- ' . $property->title . ' - ' . number_format($property->price) . ' € - ' . $property->city);
+            $mailMessage->line('- ' . $property->title . ' - ' . number_format($property->price) . ' CFA - ' . $property->city);
         }
 
         return $mailMessage
             ->action('Voir les résultats', route('properties.search.load', $this->savedSearch))
             ->line('Merci d\'utiliser notre application !');
+    }
+
+    public function toArray($notifiable)
+    {
+        return [
+            'property_id' => $this->property->id,
+            'property_title' => $this->property->title,
+            'search_params' => $this->searchParams,
+            'title' => "propriété correspond à votre recherche",
+            'message' => 'Une nouvelle propriété correspond à votre recherche',
+            'url' => route('properties.show', $this->property->id),
+        ];
     }
 }

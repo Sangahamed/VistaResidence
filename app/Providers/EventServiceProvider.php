@@ -67,6 +67,8 @@ class EventServiceProvider extends ServiceProvider
         'eloquent.updated: App\Models\Property' => [
             'App\Observers\PropertyObserver@updated',
         ],
+
+         
     ];
 
     /**

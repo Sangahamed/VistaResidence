@@ -3,13 +3,25 @@
 namespace App\Observers;
 
 use App\Models\Property;
+use App\Services\PropertySearchService;
 use App\Services\NotificationService;
 
 class PropertyObserver
 {
+    protected $searchService;
+
+    public function __construct(PropertySearchService $searchService)
+    {
+        $this->searchService = $searchService;
+    }
+
     public function created(Property $property)
     {
         app(NotificationService::class)->notifyNewProperty($property);
+
+        if ($property->availability_status === 'active') {
+            $this->searchService->checkForNewMatches($property);
+        }
     }
 
      public function updated(Property $property)
@@ -37,6 +49,10 @@ class PropertyObserver
         
         if (count($changes) > 0) {
             app(NotificationService::class)->notifyPropertyUpdate($property, $changes);
+        }
+
+         if ($property->wasChanged('status') && $property->availability_status === 'active') {
+            $this->searchService->checkForNewMatches($property);
         }
     }
 }

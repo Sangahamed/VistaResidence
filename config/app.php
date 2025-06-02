@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
     'currency' => 'FCFA',
+    'default_location' => [
+    'lat' => 5.3543, // Abidjan
+    'lng' => -4.0016,
+    ],
 
     /*
     |--------------------------------------------------------------------------

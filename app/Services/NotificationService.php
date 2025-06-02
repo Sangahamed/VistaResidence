@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Property;
 use App\Models\PropertyVisit;
 use App\Models\SavedSearch;
+use App\Notifications\PropertyUpdatedNotification;
 
 class NotificationService
 {
@@ -39,19 +40,24 @@ class NotificationService
         
         foreach ($usersToNotify as $user) {
             if ($this->shouldNotify($user, 'properties', 'status_change')) {
-                $user->notify(new \App\Notifications\PropertyStatusChanged($property, $oldStatus, $newStatus));
+                $user->notify(new \App\Notifications\PropertyVisitStatusChangedNotification($property, $oldStatus, $newStatus));
             }
         }
     }
 
+   
     public function notifyPropertyUpdate(Property $property, array $changes)
     {
-        if ($this->shouldNotify($property->owner, 'properties', 'updated')) {
-            $this->sendNotification(
-                $property->owner,
-                \App\Notifications\PropertyUpdated::class,
-                [$property, $changes]
-            );
+        $owner = $property->owner;
+        $owner->notify(new PropertyUpdatedNotification($property, $changes));
+
+        // Notifier les favoris
+        $favoritedBy = $property->favoritedBy()->with('notificationPreference')->get();
+        
+        foreach ($favoritedBy as $user) {
+            if ($user->notificationPreference?->property_updates) {
+                $user->notify(new PropertyUpdatedNotification($property, $changes));
+            }
         }
     }
 
@@ -102,12 +108,12 @@ class NotificationService
     }
 }
 
-    public function notifyAddedToFavorites(Property $property, User $user)
-{
-    if ($this->shouldNotify($property->owner, 'favorites', 'added')) {
-        $property->owner->notify(new \App\Notifications\AddedToFavorites($property, $user));
-    }
-}
+//     public function notifyAddedToFavorites(Property $property, User $user)
+// {
+//     if ($this->shouldNotify($property->owner, 'favorites', 'added')) {
+//         $property->owner->notify(new \App\Notifications\PropertyFavorited($property, $user));
+//     }
+// }
 
     // SEARCHES
     public function notifySearchMatches(SavedSearch $search, $properties)
@@ -115,13 +121,18 @@ class NotificationService
         if ($this->shouldNotify($search->user, 'searches', 'new_matches')) {
             $this->sendNotification(
                 $search->user,
-                \App\Notifications\SearchMatchesFound::class,
+                \App\Notifications\PropertyMatchNotification::class,
                 [$search, $properties]
             );
         }
     }
 
-    // HELPER METHODS
+     protected function canNotify(User $user, $category, $type)
+    {
+        return $user->notificationPreference->shouldNotify($category, $type);
+    }
+
+    
     protected function shouldNotify(User $user, $category, $type)
     {
         return $user->notificationPreference->shouldNotify($category, $type);
@@ -135,4 +146,4 @@ class NotificationService
                 : new $notificationClass($parameters)
         );
     }
-}
+} 

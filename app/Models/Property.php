@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
 
 class Property extends Model
@@ -56,6 +57,17 @@ class Property extends Model
 
     ];
 
+
+    public function getRecommendationBadgeAttribute(): string
+    {
+        return match($this->recommendation_source) {
+            'nearby' => '📍 Proche de vous',
+            'viewed_history' => '👁️ Vu récemment',
+            'favorites' => '❤️ Similaire à vos favoris',
+            'saved_searches' => '🔍 Correspond à vos recherches',
+            default => '✨ Recommandé'
+        };
+    }
 
     protected static function boot()
     {
@@ -142,6 +154,12 @@ class Property extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites');
+    }
+
 
     public function reviews()
     {
@@ -320,5 +338,28 @@ class Property extends Model
                 ) <= ?", 
                 [$lng, $lat, $radius * 1000]
             );
+    }
+
+    
+    public function scopeSelectDistance(Builder $query, $lat, $lng)
+{
+    return $query->selectRaw("
+        *,
+        (6371 * acos(
+            cos(radians(?)) * 
+            cos(radians(latitude)) * 
+            cos(radians(longitude) - radians(?)) + 
+            sin(radians(?)) * 
+            sin(radians(latitude))
+        )) AS distance
+    ", [$lat, $lng, $lat]);
+}
+
+    public function scopeOrderByViewsLastWeek($query)
+    {
+        return $query->withCount(['views as recent_views_count' => function($q) {
+                $q->where('created_at', '>=', now()->subWeek());
+            }])
+            ->orderByDesc('recent_views_count');
     }
 }
