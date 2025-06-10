@@ -21,18 +21,22 @@ Route::prefix('admin')->name('admin.')->group(function(){
 
 
 
-    Route::middleware(['prevent.back.history'])->group(function(){
+    Route::middleware(['auth:admin'])->group(function(){
 
-        Route::view('/Home','back.admin.home')->name('admin.home');
+        Route::get('/home', [AdminController::class, 'dashboard'])->name('home');
         Route::post('/logout_handler',[AdminController::class,'logoutHandler'])->name('logout_handler');
-        Route::get('/companies/pending', [CompanyApprovalController::class, 'pending'])
-        ->name('companies.pending');
+
+        Route::get('/companies', [CompanyApprovalController::class, 'index'])
+        ->name('companies.index');
         
     Route::post('/companies/{company}/approve', [CompanyApprovalController::class, 'approve'])
         ->name('companies.approve');
         
     Route::post('/companies/{company}/reject', [CompanyApprovalController::class, 'reject'])
         ->name('companies.reject');
+
+        Route::post('/companies/{company}/update-status', [CompanyApprovalController::class, 'updateStatus'])
+    ->name('companies.updateStatus');
     //     Route::get('/Profile',[AdminController::class,'profileView'])->name('profile');
     //     Route::post('/Change-profile-picture',[AdminController::class,'changeProfilePicture'])->name('change-profile-picture');
     //     Route::view('/Reglages','back.pages.admin.settings')->name('settings');

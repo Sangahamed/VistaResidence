@@ -6,24 +6,37 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
         Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('action');
-            $table->string('model_type')->nullable();
-            $table->unsignedBigInteger('model_id')->nullable();
-            $table->text('description');
-            $table->json('properties')->nullable();
-            $table->string('ip_address', 45)->nullable();
+            $table->uuid('id')->primary();
+            $table->string('ip_address', 45)->index();
             $table->text('user_agent')->nullable();
+            $table->string('action', 50)->index();
+            $table->text('details')->nullable();
+            $table->json('metadata')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('admin_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->boolean('is_suspicious')->default(false)->index();
+            $table->string('suspicion_type', 50)->nullable()->index();
+            $table->string('risk_score', 10)->nullable()->index();
+            $table->timestamp('analyzed_at')->nullable();
             $table->timestamps();
             
-            $table->index(['model_type', 'model_id']);
+            $table->index(['created_at', 'is_suspicious']);
         });
     }
 
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
     public function down()
     {
         Schema::dropIfExists('activity_logs');

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Paiements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- Include Select2 for better select inputs -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        }
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 224 71% 4%;
+                --foreground: 213 31% 91%;
+                --muted: 223 47% 11%;
+                --muted-foreground: 215.4 16.3% 56.9%;
+                --border: 216 34% 17%;
+                --input: 216 34% 17%;
+                --primary: 210 40% 98%;
+                --primary-foreground: 222.2 47.4% 1.2%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <!-- Header and Sidebar remain the same -->
+
+    <main class="flex-1 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2 text-sm text-blue-500">
+                <span>DASHBOARD</span>
+                <span>/</span>
+                <span>PAIEMENTS</span>
+            </div>
+            <div class="flex gap-2">
+                <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                    Configurer les API
+                </button>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-muted/20 border border-border rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <img src="/stripe-logo.svg" alt="Stripe" class="h-8 w-8">
+                        <div>
+                            <h3 class="font-medium text-foreground">Stripe</h3>
+                            <p class="text-sm text-muted-foreground">Paiements par carte</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+                <button class="w-full px-4 py-2 text-sm border border-border rounded-md hover:bg-muted">
+                    Configurer
+                </button>
+            </div>
+
+            <div class="bg-muted/20 border border-border rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <img src="/paypal-logo.svg" alt="PayPal" class="h-8 w-8">
+                        <div>
+                            <h3 class="font-medium text-foreground">PayPal</h3>
+                            <p class="text-sm text-muted-foreground">Paiements PayPal</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer">
+                        <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+                <button class="w-full px-4 py-2 text-sm border border-border rounded-md hover:bg-muted">
+                    Configurer
+                </button>
+            </div>
+
+            <!-- Add more payment methods as needed -->
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-muted/20 border border-border rounded-lg overflow-hidden">
+            <div class="p-4 border-b border-border">
+                <h2 class="text-lg font-semibold">Transactions récentes</h2>
+            </div>
+            <table class="w-full">
+                <thead class="bg-muted/40">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">ID</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Date</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Client</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Montant</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Méthode</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Statut</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    <tr class="hover:bg-muted/30">
+                        <td class="px-4 py-3 text-sm">#TRX-001</td>
+                        <td class="px-4 py-3 text-sm">2024-01-03</td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium">John Doe</div>
+                            <div class="text-sm text-muted-foreground">john@example.com</div>
+                        </td>
+                        <td class="px-4 py-3">1,500.00 €</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <img src="/stripe-logo.svg" alt="Stripe" class="h-4 w-4">
+                                Stripe
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500">
+                                Complété
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <button class="p-1 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1 hover:text-red-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-sm text-muted-foreground">
+            <p>Copyright 2024 © immobtest. Version 1.7.4</p>
+            <p>Page chargée en 1.85 secondes</p>
+        </footer>
+    </main>
+</body>
+</html>
+

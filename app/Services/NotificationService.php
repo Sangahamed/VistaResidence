@@ -7,9 +7,24 @@ use App\Models\Property;
 use App\Models\PropertyVisit;
 use App\Models\SavedSearch;
 use App\Notifications\PropertyUpdatedNotification;
+use App\Models\Company;
+
 
 class NotificationService
 {
+
+    public function notifyCompanyStatusChanged(Company $company)
+    {
+        $user = $company->owner;
+        $status = $company->status;
+        
+        if ($status === 'approved') {
+            $user->notify(new \App\Notifications\CompanyApproved($company));
+        } elseif ($status === 'rejected') {
+            $user->notify(new \App\Notifications\CompanyRejected($company));
+        }
+    }
+    
     // PROPERTIES
     public function notifyNewProperty(Property $property)
     {

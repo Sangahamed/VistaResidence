@@ -26,8 +26,11 @@ return new class extends Migration
             $table->string('zip_code')->nullable();
             $table->string('country')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('rejection_reason')->nullable();
             $table->timestamp('approved_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
             $table->foreignId('owner_id')->constrained('users');
+            $table->foreignId('processed_by')->nullable()->constrained('admins')->onDelete('set null');
             $table->timestamps();
         });
     }

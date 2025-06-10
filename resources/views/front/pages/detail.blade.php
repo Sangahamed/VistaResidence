@@ -448,7 +448,7 @@
                         @else
                             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
                                 <div class="flex items-center mb-6">
-                                    <img src="{{ $property->owner->picture ?? 'https://randomuser.me/api/portraits/men/46.jpg' }}"
+                                    <img src="{{ $property->owner->picture ?? $property->owner->profile_photo_url }}"
                                         alt="Propriétaire"
                                         class="w-16 h-16 rounded-full object-cover border-2 border-orange-500">
                                     <div class="ml-4">

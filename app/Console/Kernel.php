@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
     {
         $schedule->command('search:send-alerts instant')->everyFifteenMinutes();
         $schedule->command('search:send-alerts daily')->dailyAt('09:00');
@@ -38,6 +38,38 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:sync-external-services')->everyFourHours();
         $schedule->command('reminders:send')->everyFiveMinutes();
         $schedule->command('visits:send-reminders')->everyFiveMinutes();
+
+          $schedule->command('model:prune', [
+        '--model' => [ActivityLog::class],
+        ])->daily()->when(function() {
+        return config('app.env') === 'production';
+        });
+
+         // Rapports périodiques
+        if (config('activity.reports.daily.enabled')) {
+            $schedule->command('report:daily')
+                    ->dailyAt(config('activity.reports.daily.time', '23:00'));
+        }
+        
+        if (config('activity.reports.monthly.enabled')) {
+            $schedule->command('report:monthly')
+                    ->monthlyOn(
+                        config('activity.reports.monthly.day', 1),
+                        config('activity.reports.monthly.time', '01:00')
+                    );
+        }
+        
+        if (config('activity.reports.quarterly.enabled')) {
+            $schedule->command('report:quarterly')
+                    ->quarterly()
+                    ->monthlyOn(
+                        config('activity.reports.quarterly.day', 1),
+                        config('activity.reports.quarterly.time', '02:00')
+                    )
+                    ->when(function () {
+                        return in_array(now()->month, config('activity.reports.quarterly.months', [1, 4, 7, 10]));
+                    });
+        }
     }
 
     /**

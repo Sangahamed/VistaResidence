@@ -2,26 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class ActivityLog extends Model
 {
-    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
-        'user_id',
-        'action',
-        'model_type',
-        'model_id',
-        'description',
-        'properties',
-        'ip_address',
-        'user_agent',
+        'user_id', 'admin_id', 'action', 'details',
+        'ip_address', 'user_agent', 'metadata',
+        'is_suspicious', 'suspicion_type', 'risk_score',
+        'analyzed_at'
     ];
 
     protected $casts = [
-        'properties' => 'array',
+        'metadata' => 'array',
+        'is_suspicious' => 'boolean',
+        'analyzed_at' => 'datetime',
     ];
 
     public function user()
@@ -29,8 +27,8 @@ class ActivityLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function subject()
+    public function admin()
     {
-        return $this->morphTo('subject', 'model_type', 'model_id');
+        return $this->belongsTo(User::class, 'admin_id');
     }
 }

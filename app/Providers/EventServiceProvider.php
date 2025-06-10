@@ -2,10 +2,6 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 use Chatify\Events\NewMessage;
 use App\Listeners\SendChatMessageNotification;
 
@@ -22,6 +18,11 @@ use App\Listeners\SendNewLeadNotification;
 use App\Listeners\SendLeadAssignedNotification;
 use App\Listeners\SendPropertyVisitRequestedNotification;
 use App\Listeners\SendPropertyVisitStatusChangedNotification;
+use Illuminate\Support\ServiceProvider;
+use App\Events\UserActivityLogged;
+use App\Events\SuspiciousActivityDetected;
+use App\Listeners\AnalyzeUserActivity;
+use App\Listeners\NotifySuspiciousActivity;
 
 
 class EventServiceProvider extends ServiceProvider
@@ -61,6 +62,14 @@ class EventServiceProvider extends ServiceProvider
         PropertyVisitStatusChanged::class => [
             SendPropertyVisitStatusChangedNotification::class,
         ],
+
+         UserActivityLogged::class => [
+            AnalyzeUserActivity::class,
+        ],
+        SuspiciousActivityDetected::class => [
+            NotifySuspiciousActivity::class,
+        ],
+
         'eloquent.created: App\Models\Property' => [
         'App\Observers\PropertyObserver@created',
         ],

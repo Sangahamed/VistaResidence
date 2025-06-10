@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Blade;
-use Bepsvpt\SecureHeaders\SecureHeaders;
 use App\Models\Property;
 use App\Models\PropertyVisit;
 use App\Observers\PropertyObserver;
@@ -61,7 +60,6 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // SecureHeaders::fromArray(config('secure-headers'))->send();
 
         Property::observe(PropertyObserver::class);
         PropertyVisit::observe(VisitObserver::class);

@@ -308,7 +308,7 @@ function initLivewireScroll() {
             window.innerHeight + window.scrollY >=
             document.body.offsetHeight - 500
         ) {
-            Livewire.emit("loadMore");
+            Livewire.dispatch("loadMore");
         }
     });
 }

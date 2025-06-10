@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- Include Select2 for better select inputs -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        }
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 224 71% 4%;
+                --foreground: 213 31% 91%;
+                --muted: 223 47% 11%;
+                --muted-foreground: 215.4 16.3% 56.9%;
+                --border: 216 34% 17%;
+                --input: 216 34% 17%;
+                --primary: 210 40% 98%;
+                --primary-foreground: 222.2 47.4% 1.2%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <!-- Header (Same as previous) -->
+    <header class="border-b border-border bg-background">
+        <!-- ... (Header content remains the same) ... -->
+    </header>
+
+    <div class="flex">
+        <!-- Sidebar (Same as previous) -->
+        <aside class="w-64 min-h-screen bg-background border-r border-border p-4">
+            <!-- ... (Sidebar content remains the same) ... -->
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2 text-sm text-blue-500">
+                    <span>DASHBOARD</span>
+                    <span>/</span>
+                    <span>REAL ESTATE</span>
+                </div>
+                <div class="flex gap-2">
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nouvelle Propriété
+                    </button>
+                    <button class="border border-blue-500 text-blue-500 px-4 py-2 rounded-md hover:bg-blue-500/10">
+                        Importer
+                    </button>
+                    <button class="border border-blue-500 text-blue-500 px-4 py-2 rounded-md hover:bg-blue-500/10">
+                        Exporter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-muted-foreground">Catégorie</label>
+                    <select class="w-full bg-muted border-input text-foreground rounded-md">
+                        <option>Toutes les catégories</option>
+                        <option>Appartement</option>
+                        <option>Maison</option>
+                        <option>Villa</option>
+                        <option>Bureau</option>
+                        <option>Local commercial</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-muted-foreground">Statut</label>
+                    <select class="w-full bg-muted border-input text-foreground rounded-md">
+                        <option>Tous les statuts</option>
+                        <option>À vendre</option>
+                        <option>À louer</option>
+                        <option>Vendu</option>
+                        <option>Loué</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-muted-foreground">Localisation</label>
+                    <select class="w-full bg-muted border-input text-foreground rounded-md">
+                        <option>Toutes les localisations</option>
+                        <option>Paris</option>
+                        <option>Lyon</option>
+                        <option>Marseille</option>
+                        <option>Bordeaux</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Properties Table -->
+            <div class="bg-muted/20 border border-border rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-muted/40">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Image</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Titre</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Catégorie</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Prix</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Statut</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        <tr class="hover:bg-muted/30">
+                            <td class="px-4 py-3">
+                                <img src="https://via.placeholder.com/50x50" alt="Property" class="w-12 h-12 rounded-md object-cover">
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-medium">Villa moderne avec piscine</div>
+                                <div class="text-sm text-muted-foreground">Ref: VMP-2024-001</div>
+                            </td>
+                            <td class="px-4 py-3">Villa</td>
+                            <td class="px-4 py-3">850,000 €</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500">À vendre</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <button class="p-1 hover:text-blue-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1 hover:text-yellow-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1 hover:text-red-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Add more rows as needed -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-4">
+                <div class="text-sm text-muted-foreground">
+                    Affichage de 1 à 10 sur 100 entrées
+                </div>
+                <div class="flex gap-2">
+                    <button class="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50">
+                        Précédent
+                    </button>
+                    <button class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">1</button>
+                    <button class="px-3 py-1 rounded border border-border hover:bg-muted">2</button>
+                    <button class="px-3 py-1 rounded border border-border hover:bg-muted">3</button>
+                    <button class="px-3 py-1 rounded border border-border hover:bg-muted">
+                        Suivant
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-8 text-center text-sm text-muted-foreground">
+                <p>Copyright 2024 © immobtest. Version 1.7.4</p>
+                <p>Page chargée en 2.31 secondes</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</body>
+</html>
+

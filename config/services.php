@@ -67,4 +67,10 @@ return [
     'token' => env('IPINFO_TOKEN', 'c13076d0636645'),
     ],
 
+    'twilio' => [
+    'sid' => env('TWILIO_SID'),
+    'token' => env('TWILIO_TOKEN'),
+    'from' => env('TWILIO_FROM')
+    ]
+
 ];

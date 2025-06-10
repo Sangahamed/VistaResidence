@@ -213,7 +213,7 @@ public function detail(Property $property)
     $data = [
         'pageTitle' => $property->title,
         'property' => $property->load(['owner', 'features']),
-        'similar' => $this->recommendationService->getSimilarProperties($property, 4),
+        'similar' => $this->recommendationService->getSimilarProperties($property, 6),
         'PropertiesCount' => Property::where('owner_id', $property->owner_id)->count(),
         'trendingProperties' => $this->recommendationService->getTrendingProperties(4),
     ];

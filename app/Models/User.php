@@ -88,7 +88,7 @@ class User extends Authenticatable
     public function getProfilePhotoUrlAttribute(): string
     {
         return $this->avatar
-            ? asset('storage/' . $this->avatar)
+            ? asset('storage/users-avatar/' . $this->avatar)
             : "https://www.gravatar.com/avatar/" . md5(strtolower(trim($this->email))) . "?d=mp&s=200";
     }
 

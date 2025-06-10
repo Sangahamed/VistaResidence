@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Auth;
 
-
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\VerificationToken;
@@ -14,17 +13,16 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Agent;
 use Laravel\Socialite\Facades\Socialite;
 use constDefaults;
 use Toastr;
-
+use Twilio\Rest\Client;
 
 class AuthController extends Controller
-
 {
-
     // 1
     function RegisterFrom()
     {
@@ -54,8 +52,6 @@ class AuthController extends Controller
         $user->status = 'Pending';
         $this->setUserDeviceInfo($user);
 
-        
-
         if ($user->save()) {
             $token = $this->createVerificationToken($user);
             $this->sendVerificationEmail($user, $token);
@@ -77,7 +73,6 @@ class AuthController extends Controller
         ];
 
         Log::info('Affichage de la page de vérification de l\'email.', ['ip' => request()->ip()]);
-
         return view('front.auth.verify', $data);
     }
 
@@ -111,7 +106,6 @@ class AuthController extends Controller
             'password' => 'bail|required|string|min:8|max:255',
         ]);
 
-
         // Rate limiting
         $ip = $request->ip();
         Log::info('Tentative de connexion', ['email' => $request->email, 'ip' => $request->ip()]);
@@ -121,10 +115,7 @@ class AuthController extends Controller
             return back()->with('fail', 'Trop de tentatives. Réessayez dans 1 minute.');
         }
 
-
         $user = User::where('email', $request->email)->first();
-
-
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             RateLimiter::hit($ip, 60);
@@ -151,7 +142,7 @@ class AuthController extends Controller
         $currentDeviceInfo = $this->getCurrentDeviceInfo();
         if ($this->isNewDevice($user, $currentDeviceInfo)) {
             Log::info('Connexion à partir d\'un nouvel appareil détectée.', ['email' => $user->email, 'ip' => $ip, 'device_info' => $currentDeviceInfo]);
-            $this->sendTwoFactorCode($user);
+            $this->sendTwoFactorCode($user, $currentDeviceInfo);
             session(['temp_user_id' => $user->id, 'current_device_info' => $currentDeviceInfo]);
             return redirect()->route('two-factor.show');
         }
@@ -162,21 +153,13 @@ class AuthController extends Controller
         $this->resetLoginAttempts($user);
         session()->regenerate(); // Secure session
 
-        // if ($user->hasPermissionTo('can_post_ads')) {
-        //     return redirect()->route('proprietaire.dashboard');
-        // } elseif ($user->hasRole('admin_entreprise')) {
-        //     return redirect()->route('entreprise.dashboard');
-        // }
-
         Log::info('Connexion réussie.', ['email' => $user->email, 'ip' => $ip, 'user_id' => $user->id]);
         return redirect()->route('dashboard');
     }
 
-
     // 7
     public function HomeDashboard()
     {
-
         $data = [
             'pageTitle' => 'Tableau de gestion'
         ];
@@ -185,21 +168,21 @@ class AuthController extends Controller
         return view('back.pages.home', $data);
     }
 
-   
     public function logout(Request $request)
     {
-        Auth::logout(); // Correct method to log out the user
+        $userId = Auth::id();
+        $userName = Auth::user()->name ?? 'Inconnu';
+        
+        Auth::logout();
 
         Log::info('Déconnexion de.', [
-            'name' => $request->user()->name ?? 'Inconnu',
-            'user_id' => Auth::id(),
+            'name' => $userName,
+            'user_id' => $userId,
             'ip' => $request->ip()
         ]);
 
         return redirect()->route('login')->with('fail', 'Vous êtes déconnecté !');
     }
-
-
 
     // 8
     public function redirectToProvider($provider)
@@ -216,11 +199,11 @@ class AuthController extends Controller
             Log::info('Récupération réussie des informations utilisateur depuis le fournisseur', ['provider' => $provider, 'email' => $socialUser->getEmail()]);
         } catch (\Exception $e) {
             Log::error('Échec de la récupération des informations utilisateur depuis le fournisseur', ['provider' => $provider, 'error' => $e->getMessage()]);
-
             return redirect('/login')->withErrors(['error' => 'Une erreur est survenue lors de la connexion avec ' . $provider]);
         }
 
         $user = User::where('email', $socialUser->getEmail())->first();
+        $currentDeviceInfo = $this->getCurrentDeviceInfo();
 
         if ($user) {
             Auth::login($user);
@@ -232,11 +215,13 @@ class AuthController extends Controller
                 'provider' => $provider,
                 'provider_id' => $socialUser->getId(),
                 'email_verified_at' => now(),
-                $this->updateUserLoginInfo($user, $currentDeviceInfo),
+                'verified' => 1,
             ]);
         }
 
+        $this->updateUserLoginInfo($user, $currentDeviceInfo);
         Auth::login($user, true);
+        
         Log::info('Connexion réussie depuis le fournisseur d\'authentification', ['provider' => $provider, 'email' => $user->email, 'user_id' => $user->id, 'ip' => request()->ip()]);
         return redirect()->intended(route('dashboard'));
     }
@@ -247,11 +232,10 @@ class AuthController extends Controller
             'pageTitle' => 'Mot de passe oublie'
         ];
         return view('front.auth.forgot', $data);
-    } //End Method
+    }
 
     public function sendPasswordResetLink(Request $request)
     {
-        //Validate the form
         $request->validate([
             'email' => 'required|email|exists:users,email'
         ], [
@@ -260,19 +244,14 @@ class AuthController extends Controller
             'email.exists' => 'L\'email n\'est pas reconnue'
         ]);
 
-        //Get User details
         $user = User::where('email', $request->email)->first();
-
-        //Generate token
         $token = base64_encode(Str::random(64));
 
-        //Check if there is an existing reset password token for this user
         $oldToken = DB::table('password_reset_tokens')
             ->where(['email' => $user->email])
             ->first();
 
         if ($oldToken) {
-            //UPDATE EXISTING TOKEN
             DB::table('password_reset_tokens')
                 ->where(['email' => $user->email])
                 ->update([
@@ -280,7 +259,6 @@ class AuthController extends Controller
                     'created_at' => Carbon::now()
                 ]);
         } else {
-            //INSERT NEW RESET PASSWORD TOKEN
             DB::table('password_reset_tokens')
                 ->insert([
                     'email' => $user->email,
@@ -309,33 +287,29 @@ class AuthController extends Controller
         } else {
             return redirect()->route('user.forgot-password')->with('fail', 'Une erreur est survenue , Veuillez réessayer.');
         }
-    } //End Method
+    }
 
     public function showResetForm(Request $request, $token = null)
     {
-        //Check if token exists
         $get_token = DB::table('password_reset_tokens')
             ->where(['token' => $token])
             ->first();
 
         if ($get_token) {
-            //Check if this token is not expired
             $diffMins = Carbon::createFromFormat('Y-m-d H:i:s', $get_token->created_at)->diffInMinutes(Carbon::now());
 
             if ($diffMins > constDefaults::tokenExpiredMinutes) {
-                //When token is older that 15 minutes
-                return redirect()->route('user.forgot-password', ['token' => $token])->with('fail', 'Lien expiré ! Demandez un autre lien de réinitialisation du mot de passe.');
+                return redirect()->route('user.forgot-password', ['token' => $token])->with('fail', 'Lien expiré ! Demandez un autre lien de réinitialisation du mot de passe.');
             } else {
                 return view('back.pages.user.auth.reset')->with(['token' => $token]);
             }
         } else {
-            return redirect()->route('user.forgot-password', ['token' => $token])->with('fail', 'Lien invalide !, demandez un autre lien de réinitialisation du mot de passe.');
+            return redirect()->route('user.forgot-password', ['token' => $token])->with('fail', 'Lien invalide !, demandez un autre lien de réinitialisation du mot de passe.');
         }
-    } //End Method
+    }
 
     public function resetPasswordHandler(Request $request)
     {
-        //Validate the form
         $request->validate([
             'new_password' => 'required|min:8|max:45|required_with:confirm_new_password|same:confirm_new_password',
             'confirm_new_password' => 'required'
@@ -345,21 +319,17 @@ class AuthController extends Controller
             ->where(['token' => $request->token])
             ->first();
 
-        //Get user details
         $user = User::where('email', $token->email)->first();
 
-        //Update user password
         User::where('email', $user->email)->update([
             'password' => Hash::make($request->new_password)
         ]);
 
-        //Delete token record
         DB::table('password_reset_tokens')->where([
             'email' => $user->email,
             'token' => $request->token
         ])->delete();
 
-        //Send email to notify user for new password
         $data['user'] = $user;
         $data['new_password'] = $request->new_password;
 
@@ -436,7 +406,6 @@ class AuthController extends Controller
 
         if (!$user) {
             Log::warning('Utilisateur non trouvé pour la vérification.', ['email' => $verifyToken->email]);
-
             return redirect()->route('register')->with('fail', 'Utilisateur non trouvé.');
         }
 
@@ -456,7 +425,6 @@ class AuthController extends Controller
     public function resendVerification(Request $request)
     {
         Log::info('Demande de renvoi du lien de vérification.', ['ip' => request()->ip()]);
-        // Récupérer l'email depuis la session
         $email = session('unverified_email');
 
         if (!$email) {
@@ -479,13 +447,8 @@ class AuthController extends Controller
                 ->with('info', 'Votre compte est déjà vérifié.');
         }
 
-        // Supprimer les anciens tokens
         VerificationToken::where('email', $user->email)->delete();
-
-        // Créer un nouveau token de vérification
         $token = $this->createVerificationToken($user);
-
-        // Envoyer l'e-mail de vérification
         $this->sendVerificationEmail($user, $token);
 
         Log::info('Nouveau lien de vérification envoyé.', ['email' => $user->email, 'ip' => request()->ip()]);
@@ -504,13 +467,15 @@ class AuthController extends Controller
         $user->device_browser = $agent->browser();
         $user->device_resolution = request()->header('sec-ch-ua-platform');
         $user->device_language = request()->getPreferredLanguage();
+        
         Log::info('Définition des informations de l\'appareil de l\'utilisateur', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => $user->last_login_ip,
             'device_type' => $user->device_type,
             'device_os' => $user->device_os,
-            'device_browser' => $user->device_browser
+            'device_browser' => $user->device_browser,
+            'is_mobile' => $agent->isMobile()
         ]);
     }
 
@@ -526,7 +491,11 @@ class AuthController extends Controller
             'device_browser' => $agent->browser(),
             'device_resolution' => request()->header('sec-ch-ua-platform'),
             'device_language' => request()->getPreferredLanguage(),
+            'is_mobile' => $agent->isMobile(),
+            'is_tablet' => $agent->isTablet(),
+            'is_desktop' => $agent->isDesktop(),
         ];
+        
         Log::info('Informations sur l\'appareil actuel récupérées', $deviceInfo);
         return $deviceInfo;
     }
@@ -565,41 +534,128 @@ class AuthController extends Controller
         $user->device_resolution = $deviceInfo['device_resolution'];
         $user->device_language = $deviceInfo['device_language'];
         $user->save();
+        
         Log::info('Mise à jour des informations de connexion de l\'utilisateur', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => $deviceInfo['ip'],
             'device_type' => $deviceInfo['device_type'],
             'device_os' => $deviceInfo['device_os'],
-            'device_browser' => $deviceInfo['device_browser']
+            'device_browser' => $deviceInfo['device_browser'],
+            'is_mobile' => $deviceInfo['is_mobile']
         ]);
     }
 
-    // 18
-    private function sendTwoFactorCode($user)
+    // 18 - Version améliorée avec détection mobile et SMS
+    private function sendTwoFactorCode($user, $deviceInfo)
     {
-        $user->two_factor_code = rand(100000, 999999);
+        $code = rand(100000, 999999);
+        $user->two_factor_code = $code;
         $user->two_factor_expires_at = now()->addMinutes(10);
         $user->save();
 
+        // Détecter si l'utilisateur est sur mobile
+        $isMobileDevice = $deviceInfo['is_mobile'] || $deviceInfo['is_tablet'];
+        
+        if ($isMobileDevice && !empty($user->phone)) {
+            // Envoyer par SMS si sur mobile et numéro disponible
+            $smsSent = $this->sendTwoFactorSms($user, $code);
+            
+            if ($smsSent) {
+                Log::info('Code de vérification à deux facteurs envoyé par SMS', [
+                    'user_id' => $user->id,
+                    'phone' => $user->phone,
+                    'device_type' => $deviceInfo['device_type'],
+                    'is_mobile' => true,
+                    'expires_at' => $user->two_factor_expires_at
+                ]);
+                
+                // Optionnellement, envoyer aussi par email comme backup
+                $this->sendTwoFactorEmail($user, $code, 'sms_backup');
+            } else {
+                // Fallback vers email si SMS échoue
+                $this->sendTwoFactorEmail($user, $code, 'email_fallback');
+                Log::info('Fallback vers email après échec SMS', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+            }
+        } else {
+            // Envoyer par email si sur desktop ou pas de numéro
+            $this->sendTwoFactorEmail($user, $code, 'email');
+            Log::info('Code de vérification à deux facteurs envoyé par email', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'device_type' => $deviceInfo['device_type'],
+                'is_mobile' => false,
+                'expires_at' => $user->two_factor_expires_at
+            ]);
+        }
+
+        Log::info('Code de vérification généré', [
+            'user_id' => $user->id,
+            'method' => $isMobileDevice && !empty($user->phone) ? 'sms' : 'email',
+            'device_info' => $deviceInfo
+        ]);
+    }
+
+    private function sendTwoFactorSms($user, $code)
+    {
+        try {
+            // Vérifier que les credentials Twilio sont configurés
+            if (!env('TWILIO_SID') || !env('TWILIO_AUTH_TOKEN') || !env('TWILIO_PHONE_NUMBER')) {
+                Log::warning('Configuration Twilio manquante', ['user_id' => $user->id]);
+                return false;
+            }
+
+            $twilio = new Client(env('TWILIO_SID'), env('TWILIO_AUTH_TOKEN'));
+            
+            $message = $twilio->messages->create($user->phone, [
+                'from' => env('TWILIO_PHONE_NUMBER'),
+                'body' => "🔐 VistaImmob - Votre code de vérification: {$code}\n\nCe code expire dans 10 minutes.\n\nNe partagez jamais ce code."
+            ]);
+
+            Log::info('SMS 2FA envoyé avec succès', [
+                'user_id' => $user->id, 
+                'phone' => $user->phone,
+                'message_sid' => $message->sid
+            ]);
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Échec envoi SMS 2FA', [
+                'user_id' => $user->id,
+                'phone' => $user->phone,
+                'error' => $e->getMessage()
+            ]);
+            
+            return false;
+        }
+    }
+
+    private function sendTwoFactorEmail($user, $code, $type = 'email')
+    {
         $data = [
             'user_name' => $user->name,
-            'two_factor_code' => $user->two_factor_code,
+            'two_factor_code' => $code,
+            'type' => $type
         ];
 
         $mail_body = view('email-templates.two-factor-code', $data)->render();
+        
+        $subject = match($type) {
+            'sms_backup' => 'Code de vérification (Copie email)',
+            'email_fallback' => 'Code de vérification (SMS indisponible)', 
+            default => 'Votre code de vérification'
+        };
+
         sendEmail([
             'mail_from_email' => env('MAIL_FROM_ADDRESS'),
             'mail_from_name' => env('MAIL_FROM_NAME'),
             'mail_recipient_email' => $user->email,
             'mail_recipient_name' => $user->name,
-            'mail_subject' => 'Votre code de vérification',
+            'mail_subject' => $subject,
             'mail_body' => $mail_body
-        ]);
-        Log::info('Code de vérification à deux facteurs envoyé', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'expires_at' => $user->two_factor_expires_at
         ]);
     }
 
@@ -617,10 +673,12 @@ class AuthController extends Controller
 
         if (!$user || $user->two_factor_code !== $request->two_factor_code || now()->greaterThan($user->two_factor_expires_at)) {
             Log::warning('Code de vérification à deux facteurs invalide ou expiré.', ['user_id' => $userId, 'ip' => request()->ip()]);
-
             return back()->with('fail', 'Code de vérification invalide ou expiré.');
         }
 
+        // Effacer le code 2FA après vérification réussie
+        $user->two_factor_code = null;
+        $user->two_factor_expires_at = null;
         $user->save();
 
         Auth::login($user);
@@ -674,6 +732,4 @@ class AuthController extends Controller
             'ip' => request()->ip()
         ]);
     }
-
-
 }

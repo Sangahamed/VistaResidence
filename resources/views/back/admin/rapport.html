@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapports et Statistiques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Ajout de Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-10 px-4">
+        <h1 class="text-3xl font-bold mb-6">Rapports et Statistiques</h1>
+        
+        <div class="mb-6">
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Vue d'ensemble des équipes</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Statistiques et métriques clés</p>
+                    </div>
+                    <div>
+                        <select id="timeRange" class="mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="week">Cette semaine</option>
+                            <option value="month" selected>Ce mois</option>
+                            <option value="quarter">Ce trimestre</option>
+                            <option value="year">Cette année</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold text-gray-700">Nombre total d'équipes</h4>
+                            <p class="text-3xl font-bold text-indigo-600">8</p>
+                            <p class="text-sm text-gray-500">+2 depuis le dernier mois</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold text-gray-700">Nombre total de membres</h4>
+                            <p class="text-3xl font-bold text-indigo-600">42</p>
+                            <p class="text-sm text-gray-500">+5 depuis le dernier mois</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold text-gray-700">Taux d'activité</h4>
+                            <p class="text-3xl font-bold text-indigo-600">78%</p>
+                            <p class="text-sm text-gray-500">+12% depuis le dernier mois</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Répartition des membres par équipe</h3>
+                </div>
+                <div class="border-t border-gray-200 p-4">
+                    <canvas id="teamMembersChart" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Répartition des rôles</h3>
+                </div>
+                <div class="border-t border-gray-200 p-4">
+                    <canvas id="rolesChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Activité des équipes</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Nombre d'actions par équipe au cours du temps</p>
+            </div>
+            <div class="border-t border-gray-200 p-4">
+                <canvas id="activityChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Performances des équipes</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Classement basé sur l'activité et les résultats</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Équipe
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tâches complétées
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Taux de réussite
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Temps moyen de réponse
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Score global
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                Équipe technique
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                87
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                92%
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                2h 15min
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Excellent
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                Équipe commerciale
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                65
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                85%
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                3h 30min
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Bon
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                Équipe administrative
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                42
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                78%
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                4h 45min
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Moyen
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialisation des graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graphique de répartition des membres par équipe
+            const teamMembersCtx = document.getElementById('teamMembersChart').getContext('2d');
+            const teamMembersChart = new Chart(teamMembersCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Équipe commerciale', 'Équipe administrative', 'Équipe technique', 'Équipe marketing', 'Équipe support'],
+                    datasets: [{
+                        label: 'Nombre de membres',
+                        data: [12, 8, 15, 5, 7],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.6)',
+                            'rgba(99, 102, 241, 0.6)',
+                            'rgba(99, 102, 241, 0.6)',
+                            'rgba(99, 102, 241, 0.6)',
+                            'rgba(99, 102, 241, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgb(99, 102, 241)',
+                            'rgb(99, 102, 241)',
+                            'rgb(99, 102, 241)',
+                            'rgb(99, 102, 241)',
+                            'rgb(99, 102, 241)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Graphique de répartition des rôles
+            const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+            const rolesChart = new Chart(rolesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Chef d\'équipe', 'Agent', 'Rôle personnalisé'],
+                    datasets: [{
+                        label: 'Répartition des rôles',
+                        data: [8, 30, 4],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(245, 158, 11, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(16, 185, 129)',
+                            'rgb(245, 158, 11)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+
+            // Graphique d'activité des équipes
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            const activityChart = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin'],
+                    datasets: [
+                        {
+                            label: 'Équipe commerciale',
+                            data: [65, 59, 80, 81, 56, 55],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Équipe administrative',
+                            data: [28, 48, 40, 19, 86, 27],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Équipe technique',
+                            data: [45, 25, 60, 70, 75, 90],
+                            borderColor: 'rgb(245, 158, 11)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

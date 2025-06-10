@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" x-data="roleManager()">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Create New Role</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script
+          defer
+          src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+        ></script>
+        <script>
+          tailwind.config = {
+            darkMode: "class",
+            theme: {
+              extend: {
+                colors: {
+                  border: "hsl(var(--border))",
+                  input: "hsl(var(--input))",
+                  ring: "hsl(var(--ring))",
+                  background: "hsl(var(--background))",
+                  foreground: "hsl(var(--foreground))",
+                  primary: {
+                    DEFAULT: "hsl(var(--primary))",
+                    foreground: "hsl(var(--primary-foreground))",
+                  },
+                  secondary: {
+                    DEFAULT: "hsl(var(--secondary))",
+                    foreground: "hsl(var(--secondary-foreground))",
+                  },
+                  destructive: {
+                    DEFAULT: "hsl(var(--destructive))",
+                    foreground: "hsl(var(--destructive-foreground))",
+                  },
+                  muted: {
+                    DEFAULT: "hsl(var(--muted))",
+                    foreground: "hsl(var(--muted-foreground))",
+                  },
+                  accent: {
+                    DEFAULT: "hsl(var(--accent))",
+                    foreground: "hsl(var(--accent-foreground))",
+                  },
+                  popover: {
+                    DEFAULT: "hsl(var(--popover))",
+                    foreground: "hsl(var(--popover-foreground))",
+                  },
+                  card: {
+                    DEFAULT: "hsl(var(--card))",
+                    foreground: "hsl(var(--card-foreground))",
+                  },
+                },
+              },
+            },
+          };
+        </script>
+        <style type="text/tailwindcss">
+          @layer base {
+            :root {
+              --background: 224 71% 4%;
+              --foreground: 213 31% 91%;
+              --muted: 223 47% 11%;
+              --muted-foreground: 215.4 16.3% 56.9%;
+              --popover: 224 71% 4%;
+              --popover-foreground: 215 20.2% 65.1%;
+              --card: 224 71% 4%;
+              --card-foreground: 213 31% 91%;
+              --border: 216 34% 17%;
+              --input: 216 34% 17%;
+              --primary: 210 40% 98%;
+              --primary-foreground: 222.2 47.4% 1.2%;
+              --secondary: 222.2 47.4% 11.2%;
+              --secondary-foreground: 210 40% 98%;
+              --accent: 216 34% 17%;
+              --accent-foreground: 210 40% 98%;
+              --destructive: 0 63% 31%;
+              --destructive-foreground: 210 40% 98%;
+              --ring: 216 34% 17%;
+              --radius: 0.5rem;
+            }
+          }
+    
+          @keyframes fade-in-delayed {
+            0% {
+              opacity: 0;
+            }
+            75% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+    
+          .animate-fade-in-delayed {
+            animation: fade-in-delayed 1.5s ease-out forwards;
+          }
+    
+          input[type="checkbox"]:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-position: center;
+            background-repeat: no-repeat;
+          }
+        </style>
+      </head>
+<body class="bg-background text-foreground min-h-screen">
+    <header class="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="relative w-96 transition-all duration-300">
+                <input type="search" placeholder="Search" class="w-full bg-muted border-input text-foreground pl-10 pr-4 py-2 rounded-lg transition-all focus:ring-2 focus:ring-primary/50 focus:border-transparent">
+                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span class="absolute right-3 top-2.5 text-xs text-muted-foreground">ctrl/cmd + k</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="text-foreground hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                </button>
+                <button class="text-foreground hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+                <button class="text-foreground hover:text-primary relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-xs text-primary-foreground flex items-center justify-center">
+                        0
+                    </span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-foreground">Maresca Machado</span>
+                    <span class="text-xs text-muted-foreground">pablomachadomaresca@gmail.com</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex">
+        <aside class="w-64 min-h-screen bg-background border-r border-border p-4">
+            <nav class="space-y-1">
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Dashboard</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Real Estate</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Pages</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Blog</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Payments</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Testimonials</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Consults</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Coupons</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Accounts</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Packages</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Contact</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">FAQs</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Newsletters</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Locations</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Media</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Appearance</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Plugins</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Settings</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-primary hover:bg-muted rounded-md">Platform Administration</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6">
+            <div class="flex items-center gap-2 text-sm text-primary mb-6">
+                <span>DASHBOARD</span>
+                <span>/</span>
+                <span>ROLES AND PERMISSIONS</span>
+                <span>/</span>
+                <span>CREATE NEW ROLE</span>
+            </div>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Formulaire de rôle -->
+                <div class="col-span-2 bg-card/50 border border-border p-6 rounded-xl space-y-4">
+                    <input x-model="role.name" placeholder="Nom du rôle" 
+                class="w-full bg-transparent border-b-2 border-input pb-2 pt-4 focus:border-primary outline-none transition-colors peer rounded-md">
+                    <textarea x-model="role.description" placeholder="Description" 
+                             class="w-full bg-muted border-input p-3 rounded-lg" rows="3"></textarea>
+                </div>
+
+                <!-- Section sauvegarde -->
+                <div class="col-span-1 bg-card/50 border border-border p-6 rounded-xl space-y-4">
+                    <button @click="saveRole" 
+                            class="w-full bg-primary text-primary-foreground p-3 rounded-lg hover:bg-primary/90">
+                        Enregistrer le rôle
+                    </button>
+                </div>
+
+                <!-- Gestion des permissions -->
+                <div class="col-span-3 bg-card/50 border border-border p-6 rounded-xl">
+                    <div class="mb-4 flex gap-4">
+                        <input x-model="searchQuery" placeholder="Rechercher des permissions..." 
+                              class="w-full bg-muted border-input p-3 rounded-lg">
+                        <button @click="toggleAll" 
+                               class="whitespace-nowrap px-4 py-2 bg-muted hover:bg-muted/50 rounded-lg">
+                            Tout sélectionner/désélectionner
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template x-for="(group, groupName) in groupedPermissions" :key="groupName">
+                            <div class="border border-border rounded-xl bg-muted/5">
+                                <div class="p-4 border-b border-border flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" 
+                                              @change="toggleGroup(groupName)"
+                                              :checked="isGroupSelected(groupName)"
+                                              class="rounded text-primary">
+                                        <h3 x-text="groupName" class="font-medium capitalize"></h3>
+                                    </div>
+                                    <span x-text="`${group.selectedCount}/${group.permissions.length}`" 
+                                         class="text-sm text-muted-foreground"></span>
+                                </div>
+                                
+                                <div class="p-4 space-y-2">
+                                    <template x-for="permission in group.permissions" :key="permission.slug">
+                                        <label class="flex items-center gap-2 p-2 hover:bg-muted/10 rounded cursor-pointer">
+                                            <input type="checkbox" 
+                                                  x-model="selectedPermissions"
+                                                  :value="permission.slug"
+                                                  class="rounded text-primary">
+                                            <span x-text="permission.name" class="text-sm"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function roleManager() {
+            return {
+                searchQuery: '',
+                role: {
+                    name: '',
+                    description: ''
+                },
+                selectedPermissions: [],
+                
+                // Permissions dynamiques groupées
+                permissions: [
+                    // User permissions
+                    { name: 'View Users', slug: 'users.view' },
+                    { name: 'Create Users', slug: 'users.create' },
+                    { name: 'Edit Users', slug: 'users.edit' },
+                    { name: 'Delete Users', slug: 'users.delete' },
+                    
+                    // Role permissions
+                    { name: 'View Roles', slug: 'roles.view' },
+                    { name: 'Create Roles', slug: 'roles.create' },
+                    { name: 'Edit Roles', slug: 'roles.edit' },
+                    { name: 'Delete Roles', slug: 'roles.delete' },
+                    
+                    // Permission permissions
+            { name: 'View Permissions', slug: 'permissions.view' },
+            { name: 'Create Permissions', slug: 'permissions.create' },
+            { name: 'Edit Permissions', slug: 'permissions.edit' },
+            { name: 'Delete Permissions', slug: 'permissions.delete' },
+
+            // Company permissions
+            { name: 'View Companies', slug: 'companies.view' },
+            { name: 'Create Companies', slug: 'companies.create' },
+            { name: 'Edit Companies', slug: 'companies.edit' },
+            { name: 'Delete Companies', slug: 'companies.delete' },
+
+            // Property permissions
+            { name: 'View Properties', slug: 'properties.view' },
+            { name: 'Create Properties', slug: 'properties.create' },
+            { name: 'Edit Properties', slug: 'properties.edit' },
+            { name: 'Delete Properties', slug: 'properties.delete' },
+
+            // Task permissions
+            { name: 'View Tasks', slug: 'tasks.view' },
+            { name: 'Create Tasks', slug: 'tasks.create' },
+            { name: 'Edit Tasks', slug: 'tasks.edit' },
+            { name: 'Delete Tasks', slug: 'tasks.delete' },
+            { name: 'Assign Tasks', slug: 'tasks.assign' },
+
+            // Invitation permissions
+            { name: 'View Invitations', slug: 'invitations.view' },
+            { name: 'Create Invitations', slug: 'invitations.create' },
+            { name: 'Delete Invitations', slug: 'invitations.delete' },
+            { name: 'Resend Invitations', slug: 'invitations.resend' },
+            
+                    // ... Ajoutez toutes les autres permissions ici
+                ],
+
+                get filteredPermissions() {
+                    return this.permissions.filter(p =>
+                        p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                        p.slug.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    );
+                },
+
+                get groupedPermissions() {
+                    return this.filteredPermissions.reduce((groups, permission) => {
+                        const groupName = permission.slug.split('.')[0];
+                        if (!groups[groupName]) {
+                            groups[groupName] = {
+                                permissions: [],
+                                selectedCount: 0
+                            };
+                        }
+                        groups[groupName].permissions.push(permission);
+                        groups[groupName].selectedCount = this.selectedPermissions.filter(
+                            sp => sp.startsWith(groupName)
+                        ).length;
+                        return groups;
+                    }, {});
+                },
+
+                isGroupSelected(groupName) {
+                    return this.groupedPermissions[groupName]?.permissions.every(
+                        p => this.selectedPermissions.includes(p.slug)
+                    );
+                },
+
+                toggleGroup(groupName) {
+                    const group = this.groupedPermissions[groupName];
+                    const allSelected = this.isGroupSelected(groupName);
+                    
+                    group.permissions.forEach(p => {
+                        if (allSelected) {
+                            this.selectedPermissions = this.selectedPermissions.filter(
+                                sp => sp !== p.slug
+                            );
+                        } else {
+                            if (!this.selectedPermissions.includes(p.slug)) {
+                                this.selectedPermissions.push(p.slug);
+                            }
+                        }
+                    });
+                },
+
+                toggleAll() {
+                    const allSelected = this.selectedPermissions.length === this.permissions.length;
+                    
+                    if (allSelected) {
+                        this.selectedPermissions = [];
+                    } else {
+                        this.selectedPermissions = this.permissions.map(p => p.slug);
+                    }
+                },
+
+                async saveRole() {
+                    try {
+                        const response = await fetch('/roles', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                ...this.role,
+                                permissions: this.selectedPermissions
+                            })
+                        });
+
+                        if (response.ok) {
+                            alert('Rôle créé avec succès !');
+                            this.resetForm();
+                        } else {
+                            throw new Error('Erreur lors de la création');
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('Erreur lors de la sauvegarde');
+                    }
+                },
+
+                resetForm() {
+                    this.role = { 
+                        name: '', 
+                        description: ''
+                    };
+                    this.selectedPermissions = [];
+                }
+            }
+        }
+    </script>
+</body>
+</html>

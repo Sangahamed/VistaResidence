@@ -33,6 +33,22 @@
                                 @endif
                             </div>
                             <div class="swiper-pagination text-white"></div>
+                            <div
+                                class="swiper-button-prev hidden lg:flex absolute top-[60%] left-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
+                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </div>
+                            <div
+                                class="swiper-button-next hidden lg:flex absolute top-[60%] right-4 z-30 items-center justify-center w-6 h-6 -translate-y-1/2 rounded-full bg-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white/90">
+                                <svg class="w-4 h-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </div>
 
                         <!-- Badges -->
@@ -41,40 +57,6 @@
                                 <span
                                     class="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold new-badge">
                                     Nouveau
-                                </span>
-                            @endif
-
-                            <!-- Badge de source de recommandation TikTok-style -->
-                            @if (isset($property->recommendation_source))
-                                <span class="bg-gray-800/70 text-white text-xs px-2 py-1 rounded-full font-bold">
-                                    @switch($property->recommendation_source)
-                                        @case('nearby')
-                                            📍 Proche
-                                        @break
-
-                                        @case('viral')
-                                            🔥 Tendance
-                                        @break
-
-                                        @case('personalized')
-                                            ⭐ Pour vous
-                                        @break
-
-                                        @case('local')
-                                            🏠 Local
-                                        @break
-
-                                        @case('discovery')
-                                            ✨ Découverte
-                                        @break
-
-                                        @case('search')
-                                            🔍 Recherche
-                                        @break
-
-                                        @default
-                                            💡 Suggéré
-                                    @endswitch
                                 </span>
                             @endif
 
@@ -100,11 +82,7 @@
                         <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-3">
                             <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
                             {{ $property->city }}, {{ $property->address }}
-                            @if (isset($property->distance))
-                                <span class="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
-                                    {{ number_format($property->distance, 1) }} km
-                                </span>
-                            @endif
+                            
                         </div>
 
                         <div class="flex flex-wrap gap-4 mb-4">

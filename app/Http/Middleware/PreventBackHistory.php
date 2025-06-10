@@ -23,24 +23,6 @@ class PreventBackHistory
             'Pragma'        => 'no-cache',
             'Expires'       => 'Thu, 04 Jun 2000 00:00:00 GMT',
         ];
-
-        // Ajoute un script JavaScript pour bloquer la navigation arrière
-        $script = <<<SCRIPT
-        <script>
-            history.pushState(null, document.title, location.href);
-            window.addEventListener('popstate', function (event) {
-                history.pushState(null, document.title, location.href);
-                alert('Vous ne pouvez pas revenir en arrière.');
-            });
-        </script>
-        SCRIPT;
-
-        // Ajoute le script à la réponse
-        $content = $response->getContent();
-        $content = str_replace('</body>', $script . '</body>', $content);
-        $response->setContent($content);
-
-        // Applique les en-têtes à la réponse
         return $response->withHeaders($headers);
     }
 }

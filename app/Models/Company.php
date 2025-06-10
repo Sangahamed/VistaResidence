@@ -15,12 +15,29 @@ class Company extends Model
     const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
-        'name', 'slug', 'description', 'logo', 'website', 'email', 
-        'phone', 'address', 'city', 'state', 'zip_code', 'country','status', 'owner_id'
+        'name',
+        'slug',
+        'description',
+        'logo',
+        'website',
+        'email',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'country',
+        'status',
+        'rejection_reason',
+        'approved_at',
+        'rejected_at',
+        'owner_id',
+        'processed_by'
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -30,6 +47,14 @@ class Company extends Model
         static::creating(function ($company) {
             if (empty($company->slug)) {
                 $company->slug = Str::slug($company->name);
+                
+                // Vérifier l'unicité du slug
+                $count = 1;
+                $originalSlug = $company->slug;
+                
+                while (static::where('slug', $company->slug)->exists()) {
+                    $company->slug = $originalSlug . '-' . $count++;
+                }
             }
         });
     }
@@ -39,14 +64,18 @@ class Company extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function processedBy()
+    {
+        return $this->belongsTo(Admin::class, 'processed_by');
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)
-            ->withPivot('job_title', 'is_admin')
+            ->withPivot('job_title', 'is_admin', 'role_id')
             ->withTimestamps();
     }
 
-   
     public function isPending()
     {
         return $this->status === self::STATUS_PENDING;
@@ -103,12 +132,10 @@ class Company extends Model
         return $this->hasMany(Coupon::class);
     }
 
-
     public function agencies()
     {
         return $this->hasMany(Agency::class);
     }
-
 
     public function activeModules()
     {
@@ -121,6 +148,4 @@ class Company extends Model
     {
         return $this->hasMany(Lead::class);
     }
-
-
 }

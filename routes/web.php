@@ -259,15 +259,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Companies
     Route::prefix('companies')->name('companies.')->group(function () {
-        Route::get('/', [CompanyController::class, 'index'])->name('index');
-        Route::get('/create', [CompanyController::class, 'create'])->name('create');
-        Route::post('/', [CompanyController::class, 'store'])->name('store');
-        Route::get('/{company}', [CompanyController::class, 'show'])->name('show');
-        Route::get('/{company}/edit', [CompanyController::class, 'edit'])->name('edit');
-        Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
-        Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
-        Route::get('/pending', [CompanyController::class, 'pending'])->name('pending');
-    });
+    Route::get('/pending', [CompanyController::class, 'pending'])->name('pending'); // Déplacé ici
+    Route::get('/', [CompanyController::class, 'index'])->name('index');
+    Route::get('/create', [CompanyController::class, 'create'])->name('create');
+    Route::post('/', [CompanyController::class, 'store'])->name('store');
+    Route::get('/{company}', [CompanyController::class, 'show'])->name('show');
+    Route::get('/{company}/edit', [CompanyController::class, 'edit'])->name('edit');
+    Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
+    Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
+});
+
 
     // Auctions
     Route::prefix('auctions')->name('auctions.')->group(function () {

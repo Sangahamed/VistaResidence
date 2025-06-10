@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(var(--popover))",
+                            foreground: "hsl(var(--popover-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 224 71% 4%;
+                --foreground: 213 31% 91%;
+                --muted: 223 47% 11%;
+                --muted-foreground: 215.4 16.3% 56.9%;
+                --popover: 224 71% 4%;
+                --popover-foreground: 215 20.2% 65.1%;
+                --card: 224 71% 4%;
+                --card-foreground: 213 31% 91%;
+                --border: 216 34% 17%;
+                --input: 216 34% 17%;
+                --primary: 210 40% 98%;
+                --primary-foreground: 222.2 47.4% 1.2%;
+                --secondary: 222.2 47.4% 11.2%;
+                --secondary-foreground: 210 40% 98%;
+                --accent: 216 34% 17%;
+                --accent-foreground: 210 40% 98%;
+                --destructive: 0 63% 31%;
+                --destructive-foreground: 210 40% 98%;
+                --ring: 216 34% 17%;
+                --radius: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <header class="border-b border-border bg-background">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="relative w-96">
+                <input type="search" placeholder="Search" class="w-full bg-muted border-input text-foreground pl-10 pr-4 py-2 rounded-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span class="absolute right-3 top-2.5 text-xs text-muted-foreground">ctrl/cmd + k</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="text-foreground hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                </button>
+                <button class="text-foreground hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+                <button class="text-foreground hover:text-primary relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-xs text-primary-foreground flex items-center justify-center">
+                        0
+                    </span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-foreground">Maresca Machado</span>
+                    <span class="text-xs text-muted-foreground">pablomachadomaresca@gmail.com</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex">
+        <aside class="w-64 min-h-screen bg-background border-r border-border p-4">
+            <nav class="space-y-1">
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Dashboard</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Real Estate</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Pages</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Blog</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Payments</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Testimonials</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Consults</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Coupons</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Accounts</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Packages</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Contact</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">FAQs</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Newsletters</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Locations</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Media</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Appearance</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Plugins</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md">Settings</a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm text-primary hover:bg-muted rounded-md">Platform Administration</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6">
+            <div class="flex items-center gap-2 text-sm text-primary mb-6">
+                <span>DASHBOARD</span>
+                <span>/</span>
+                <span>SYSTEM</span>
+            </div>
+
+            <h1 class="text-2xl font-semibold text-foreground mb-6">System</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Users</h3>
+                    <p class="text-sm text-muted-foreground">View and update your system users</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Roles And Permissions</h3>
+                    <p class="text-sm text-muted-foreground">View and update your roles and permissions</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Activities Logs</h3>
+                    <p class="text-sm text-muted-foreground">View and delete your system activity logs</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Backup</h3>
+                    <p class="text-sm text-muted-foreground">Backup database and uploads folder.</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Cronjob</h3>
+                    <p class="text-sm text-muted-foreground">Cronjob allow you to automate certain commands or scripts on your site.</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Cache Management</h3>
+                    <p class="text-sm text-muted-foreground">Clear cache to make your site up to date.</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">Cleanup System</h3>
+                    <p class="text-sm text-muted-foreground">Cleanup your unused data in database</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">System Information</h3>
+                    <p class="text-sm text-muted-foreground">All information about current system configuration.</p>
+                </div>
+                <div class="bg-card/50 border border-border p-4 rounded-lg hover:bg-card transition-colors cursor-pointer">
+                    <h3 class="text-primary font-medium mb-2">System Updater</h3>
+                    <p class="text-sm text-muted-foreground">Update your system to the latest version</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-muted-foreground">
+        <p>Copyright 2024 © immobtest. Version 1.7.4</p>
+        <p>Page loaded in 1.01 seconds</p>
+    </footer>
+</body>
+</html>
+

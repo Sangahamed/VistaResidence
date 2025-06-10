@@ -3,19 +3,13 @@
 @section('title', 'Vérification du compte')
 
 @section('content')
-<!-- Container principal -->
 <div class="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
     <div class="bg-white p-8 rounded-lg shadow-xl max-w-lg w-full text-center fade-in">
-        <!-- Section icône et titre -->
         <div class="mb-6">
-            <div class="text-green-500 text-6xl mb-4 bounce">
-                &#10003;
-                <!-- Symbole de coche -->
-            </div>
+            <div class="text-green-500 text-6xl mb-4 bounce">&#10003;</div>
             <h1 class="text-3xl font-bold text-gray-900">Vérification à deux facteurs</h1>
         </div>
 
-        <!-- Section message -->
         <div class="mb-6">
             <p class="text-gray-700 leading-relaxed">
                 Un code de vérification a été envoyé à votre adresse e-mail.
@@ -23,17 +17,15 @@
             </p>
         </div>
 
-        <!-- Section alerte -->
         @if (session('fail'))
             <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 {{ session('fail') }}
             </div>
         @endif
 
-        <!-- Formulaire de vérification -->
         <form class="mt-8 space-y-6" action="{{ route('admin.two-factor.verify') }}" method="POST">
             @csrf
-            <div class="rounded-md shadow-sm -space-y-px bg-black">
+            <div class="rounded-md shadow-sm -space-y-px">
                 <div>
                     <label for="two_factor_code" class="sr-only">Code de vérification</label>
                     <input id="two_factor_code" name="two_factor_code" type="text" required

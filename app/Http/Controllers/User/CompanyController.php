@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
+use App\Notifications\NewCompanyCreated;
+use App\Models\Admin;
 
 class CompanyController extends Controller
 {
@@ -115,8 +117,13 @@ class CompanyController extends Controller
             $company->modules()->attach($moduleData);
         }
 
+         $admins = Admin::all();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewCompanyCreated($company));
+            }
+
         return redirect()->route('companies.show', $company)
-            ->with('success', 'Entreprise créée avec succès.');
+            ->with('success', 'Entreprise créée avec succès. En attente de validation.');
     }
 
     public function show(Company $company)
